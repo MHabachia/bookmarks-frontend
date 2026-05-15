@@ -1,10 +1,10 @@
 # Bookmark App – Frontend
 
-Einfache Bookmark-App als Studiumsprojekt im Fach **Webtechnologien** an der HTW Berlin.
+Eine einfache Lesezeichen-Verwaltungs WebApp, entwickelt im Rahmen eines Projekts für den Kurs **Webtechnologien** an der HTW Berlin.
 
 ## Technologie-Stack
 
-- **Vue.js 3** 
+- **Vue.js 3**
 - **Vite** (Build-Tool & Dev-Server)
 - **Vue Router 4**
 
@@ -26,10 +26,13 @@ Der Vite-Dev-Server leitet `/api`-Anfragen automatisch an das Backend auf Port 8
 
 ## Komponenten
 
-| Komponente       | Beschreibung                                              |
-|------------------|-----------------------------------------------------------|
-| `BookmarkList`   | Lädt Bookmarks vom Backend und rendert sie mit `v-for`    |
-| `BookmarkItem`   | Stellt einen einzelnen Bookmark dar                       |
+| Komponente       | Beschreibung                                                  |
+|------------------|---------------------------------------------------------------|
+| `AppSidebar`     | Seitenleiste mit Navigation, Repos, Doku und Abmelden-Button |
+| `AppTopbar`      | Obere Leiste mit Seitentitel, Dark-Mode-Toggle und Profil     |
+| `BookmarkList`   | Lädt Bookmarks vom Backend und rendert sie mit `v-for`        |
+| `BookmarkItem`   | Einzelne Bookmark-Karte mit Favicon, Menü und Tag-Chips       |
+| `BookmarkModal`  | Modal zum Hinzufügen und Bearbeiten von Bookmarks             |
 
 ## Milestones
 
@@ -40,6 +43,10 @@ Der Vite-Dev-Server leitet `/api`-Anfragen automatisch an das Backend auf Port 8
 
 ## Team
 
-| Name | Rolle |
-|------|-------|
-| ...  | ...   |
+- **Team: 40** · **Kurs: Webtechnologien**
+- Studiengang: Wirtschaftsinfromatik · HTW Berlin · SoSe 2026
+
+| Name              | GitHub     |
+|-------------------|------------|
+| Mohamad Habachia  | @MHabachia |
+| Ibrahim Hassan    | @Hassan9977|
