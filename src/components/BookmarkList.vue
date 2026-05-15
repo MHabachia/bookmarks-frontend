@@ -3,7 +3,6 @@
 
     <div class="section-header">
       <h2>{{ filteredBookmarks.length }} Lesezeichen</h2>
-      <!-- Add-Button öffnet das Modal im Add-Modus -->
       <button class="add-btn" @click="openAdd">
         <i class="ti ti-plus"></i>
         Add Bookmark
@@ -12,9 +11,6 @@
 
     <p v-if="loading" class="status">
       <i class="ti ti-loader"></i> Lade Bookmarks...
-    </p>
-    <p v-else-if="error" class="status error">
-      <i class="ti ti-alert-circle"></i> Fehler: {{ error }}
     </p>
 
     <div v-else class="bookmark-grid">
@@ -27,11 +23,10 @@
       />
     </div>
 
-    <p v-if="!loading && !error && filteredBookmarks.length === 0" class="status">
+    <p v-if="!loading && filteredBookmarks.length === 0" class="status">
       Keine Bookmarks in dieser Kategorie.
     </p>
 
-    <!-- Modal — wird für Add und Edit verwendet -->
     <BookmarkModal
       v-if="modalOpen"
       :bookmark="editingBookmark"
@@ -44,27 +39,14 @@
 </template>
 
 <script setup>
-/**
- * BookmarkList.vue — Änderungen:
- *
- * 1. modalOpen: steuert ob das Modal sichtbar ist
- * 2. editingBookmark: null = Add-Modus, Objekt = Edit-Modus
- * 3. openAdd(): öffnet Modal im Add-Modus
- * 4. openEdit(b): öffnet Modal im Edit-Modus mit dem gewählten Bookmark
- * 5. saveBookmark(data): fügt hinzu oder aktualisiert lokal
- *    (für M4 wird hier der POST/PUT API-Call eingebaut)
- * 6. deleteBookmark(b): entfernt das Bookmark lokal aus der Liste
- *    (für M4 wird hier der DELETE API-Call eingebaut)
- */
 import { ref, inject, computed, onMounted } from 'vue'
 import BookmarkItem from './BookmarkItem.vue'
 import BookmarkModal from './BookmarkModal.vue'
 
-const bookmarks   = inject('bookmarks')
+const bookmarks    = inject('bookmarks')
 const activeFilter = inject('activeFilter')
 
 const loading = ref(true)
-const error   = ref(null)
 
 // Modal-Zustand
 const modalOpen       = ref(false)
@@ -76,11 +58,9 @@ function closeModal() { modalOpen.value = false; editingBookmark.value = null }
 
 function saveBookmark(data) {
   if (editingBookmark.value) {
-    // Edit: bestehendes Bookmark ersetzen
     const idx = bookmarks.value.findIndex(b => b.id === data.id)
     if (idx !== -1) bookmarks.value[idx] = data
   } else {
-    // Add: neues Bookmark mit temporärer ID hinzufügen
     bookmarks.value.push({ ...data, id: Date.now() })
   }
   closeModal()
@@ -101,13 +81,23 @@ const filteredBookmarks = computed(() => {
   }
 })
 
+// Mock-Daten wenn Backend nicht läuft
+const mockData = [
+  { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',        description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium']  },
+  { id: 2, title: 'Spring Boot Docs', url: 'https://docs.spring.io/spring-boot', description: 'Offizielle Spring Boot Dokumentation',       tags: ['Backend']  },
+  { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                description: 'Offizielle Vue.js 3 Dokumentation',           tags: ['Frontend'] },
+  { id: 4, title: 'MDN Web Docs',     url: 'https://developer.mozilla.org',    description: 'Web-Entwicklungs-Referenz von Mozilla',        tags: ['Referenz'] }
+]
+
 onMounted(async () => {
   try {
     const response = await fetch('/api/bookmarks')
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    if (!response.ok) throw new Error('HTTP Fehler: ' + response.status)
     bookmarks.value = await response.json()
-  } catch (e) {
-    error.value = e.message
+  } catch {
+    // Backend nicht erreichbar → Mock-Daten laden
+    console.warn('Backend nicht erreichbar, lade Mock-Daten.')
+    bookmarks.value = mockData
   } finally {
     loading.value = false
   }
@@ -161,10 +151,5 @@ onMounted(async () => {
   padding: 1rem;
   color: var(--muted);
   font-size: 14px;
-}
-.status.error {
-  color: #E24B4A;
-  background: rgba(226, 75, 74, 0.08);
-  border-radius: 8px;
 }
 </style>
