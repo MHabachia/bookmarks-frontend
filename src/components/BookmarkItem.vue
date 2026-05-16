@@ -50,16 +50,7 @@
 </template>
 
 <script setup>
-/**
- * BookmarkItem.vue — Änderungen:
- *
- * 1. Dreipunkt-Menü: öffnet ein kleines Dropdown mit
- *    "Bearbeiten" und "Löschen" — Klick außerhalb schließt es
- * 2. emit('edit'): meldet nach oben an BookmarkList dass
- *    dieses Bookmark bearbeitet werden soll
- * 3. emit('delete'): meldet Löschen nach oben
- * 4. Tag-Badge: zeigt Tags als kleine Chips unter der Beschreibung
- */
+
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({ bookmark: { type: Object, required: true } })
@@ -121,7 +112,7 @@ onUnmounted(() => document.removeEventListener('click', handleOutside))
 }
 .favicon-fallback i { font-size: 11px; color: var(--muted); }
 
-.card-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.card-title { font-size: 16px; font-weight: 500; color: var(--text); }
 
 /* Dreipunkt-Menü */
 .menu-wrap { position: relative; }
@@ -167,9 +158,9 @@ onUnmounted(() => document.removeEventListener('click', handleOutside))
 /* URL */
 .card-url {
   display: flex; align-items: center; gap: 4px;
-  font-size: 11px; color: var(--accent); margin-bottom: 7px; text-decoration: none;
+  font-size: 13px; color: var(--accent); margin-bottom: 7px; text-decoration: none;
 }
-.card-url i { font-size: 11px; }
+.card-url i { font-size: 14px; }
 .card-url:hover { text-decoration: underline; }
 
 .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
@@ -177,7 +168,7 @@ onUnmounted(() => document.removeEventListener('click', handleOutside))
 /* Tag-Chips */
 .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
 .tag {
-  font-size: 11px;
+  font-size: 12px;
   background: var(--tag-bg);
   color: var(--accent);
   border-radius: 99px;

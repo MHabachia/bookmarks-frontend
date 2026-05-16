@@ -85,8 +85,7 @@ const filteredBookmarks = computed(() => {
 const mockData = [
   { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',        description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium']  },
   { id: 2, title: 'Spring Boot Docs', url: 'https://docs.spring.io/spring-boot', description: 'Offizielle Spring Boot Dokumentation',       tags: ['Backend']  },
-  { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                description: 'Offizielle Vue.js 3 Dokumentation',           tags: ['Frontend'] },
-  { id: 4, title: 'MDN Web Docs',     url: 'https://developer.mozilla.org',    description: 'Web-Entwicklungs-Referenz von Mozilla',        tags: ['Referenz'] }
+  { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                description: 'Offizielle Vue.js 3 Dokumentation',           tags: ['Frontend'] }
 ]
 
 onMounted(async () => {

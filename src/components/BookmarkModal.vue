@@ -18,7 +18,7 @@
           <input
             v-model="form.title"
             type="text"
-            placeholder="z.B. Vue.js Dokumentation"
+            placeholder="z.B. Vue.js"
           />
         </div>
 
@@ -48,7 +48,7 @@
           <input
             v-model="form.tag"
             type="text"
-            placeholder="z.B. Studium, Frontend, Backend"
+            placeholder="z.B. Studium, Media, Projekt"
           />
         </div>
 
@@ -67,20 +67,8 @@
 </template>
 
 <script setup>
-/**
- * BookmarkModal.vue — neue Komponente
- *
- * Wird für zwei Zwecke genutzt:
- * 1. Neues Bookmark hinzufügen (isEdit = false, bookmark = null)
- * 2. Bestehendes Bookmark bearbeiten (isEdit = true, bookmark = Objekt)
- *
- * form: lokaler Zustand mit den 4 Feldern
- * Beim Öffnen im Edit-Modus werden die Felder mit den bestehenden
- * Werten befüllt (watch auf bookmark-Prop)
- *
- * save(): gibt das ausgefüllte Formular per emit('save') nach oben
- * an BookmarkList weiter, die dann den API-Call macht
- */
+
+
 import { reactive, watch } from 'vue'
 
 const props = defineProps({

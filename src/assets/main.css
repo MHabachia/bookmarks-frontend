@@ -1,9 +1,9 @@
 /* ===================================================
-   DESIGN TOKENS — Light Mode
+   DESIGN TOKENS — Light Mode (Blau)
    =================================================== */
 :root {
   --bg: #f0f4f9;
-  --sidebar: #0f3460;        /* mittleres Blau statt sehr dunklem Navy */
+  --sidebar: #0f3460;
   --card: #ffffff;
   --topbar: #ffffff;
   --dropdown: #ffffff;
@@ -16,7 +16,7 @@
   --btn: #1a6dbf;
   --btn-text: #ffffff;
 
-  /* Sidebar-Farben (immer dunkel, unabhängig vom Mode) */
+  /* Sidebar-Farben — blaues Schema */
   --sidebar-text: #a8c8f0;
   --sidebar-muted: #7ab0e8;
   --sidebar-active-bg: rgba(122, 176, 232, 0.2);
@@ -26,22 +26,21 @@
 }
 
 /* ===================================================
-   Dark Mode — heller als vorher, angenehmes Mittelblau
-   Vorher: #0a1628 / #071020 (fast schwarz)
-   Jetzt:  #1a2a4a / #162240 (erkennbar dunkelblau)
+   Dark Mode — DUNKELGRAU
+   Sidebar bleibt blau — nur Hauptbereich wird grau
    =================================================== */
 body.dark {
-  --bg: #1e2d4a;             /* heller als vorher (#0a1628) */
-  --sidebar: #0f1e35;        /* etwas heller als vorher (#071020) */
-  --card: #243555;           /* deutlich hellere Karten */
-  --topbar: #162240;
-  --dropdown: #243555;
-  --text: #ddeeff;           /* leicht bläuliches Weiß statt reines Weiß */
-  --muted: #7aa0c8;
-  --accent: #5ba3e8;         /* hellerer Akzent im Dark Mode */
-  --border: rgba(255, 255, 255, 0.1);
-  --hover: rgba(91, 163, 232, 0.1);
-  --tag-bg: #1a3055;
+  --bg: #1a1a1a;           /* dunkles Grau — Haupthintergrund */
+  --sidebar: #0f3460;      /* Sidebar bleibt blau wie im Light Mode */
+  --card: #2a2a2a;         /* Karten: mittelgrau */
+  --topbar: #222222;       /* Topbar: etwas heller als Hintergrund */
+  --dropdown: #2a2a2a;     /* Dropdown: gleich wie Karten */
+  --text: #f0f0f0;         /* fast weisser Text */
+  --muted: #999999;        /* gedaempfte Texte in Grau */
+  --accent: #5ba3e8;       /* Akzentblau etwas heller im Dark Mode */
+  --border: rgba(255, 255, 255, 0.08);
+  --hover: rgba(255, 255, 255, 0.06);
+  --tag-bg: #333333;       /* Tag-Hintergrund: dunkelgrau */
   --btn: #1a6dbf;
   --btn-text: #ffffff;
 }

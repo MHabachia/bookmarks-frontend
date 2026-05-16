@@ -2,11 +2,6 @@
   <div id="app-layout">
     <AppSidebar @set-filter="activeFilter = $event" />
     <div class="main-area">
-      <!--
-        AppTopbar umschließt jetzt den Seiteninhalt per <slot>
-        so dass der Footer immer unterhalb des Inhalts sitzt,
-        unabhängig davon wie viel Inhalt auf der Seite ist
-      -->
       <AppTopbar @toggle-dark="toggleDark" :isDark="isDark">
         <RouterView />
       </AppTopbar>

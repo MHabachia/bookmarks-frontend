@@ -22,11 +22,11 @@
 
     <div class="sidebar-footer">
       <div class="repos-row">
-        <a href="#" class="repo-btn">
+        <a href="https://github.com/MHabachia/bookmarks-frontend" class="repo-btn">
           <i class="ti ti-brand-github"></i>
           Frontend
         </a>
-        <a href="#" class="repo-btn">
+        <a href="https://github.com/MHabachia/bookmarks-backend" class="repo-btn">
           <i class="ti ti-brand-github"></i>
           Backend
         </a>
@@ -40,7 +40,7 @@
         Abmelden
       </button>
       <div class="footer-meta">
-        <p>Version 1.0 · SoSe2026</p>
+        <p>Version 1.3 · M3 · SoSe2026</p>
       </div>
     </div>
 
@@ -99,7 +99,6 @@ const navItems = computed(() => [
   min-height: 100vh;
 }
 
-/* Logo — etwas größer */
 .sidebar-logo {
   padding: 20px 18px;
   display: flex;
@@ -109,8 +108,8 @@ const navItems = computed(() => [
 }
 .sidebar-logo i { font-size: 22px; color: var(--sidebar-muted); }
 .sidebar-logo span {
-  font-size: 17px;        /* vorher 15px */
-  font-weight: 700;       /* vorher 500 */
+  font-size: 17px;
+  font-weight: 700;
   color: #fff;
   letter-spacing: -0.2px;
 }
@@ -127,12 +126,12 @@ const navItems = computed(() => [
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;      /* etwas mehr Padding */
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   color: var(--sidebar-text);
-  font-size: 14px;        /* vorher 13px */
-  font-weight: 500;       /* vorher normal */
+  font-size: 15px;
+  font-weight: 700;
   background: none;
   border: none;
   width: 100%;
@@ -144,9 +143,9 @@ const navItems = computed(() => [
 .nav-item.active {
   background: var(--sidebar-active-bg);
   color: #fff;
-  font-weight: 600;       /* aktiver Eintrag noch dicker */
+  font-weight: 800;
 }
-.nav-item i { font-size: 17px; } /* vorher 16px */
+.nav-item i { font-size: 20px; }
 
 .nav-badge {
   margin-left: auto;
@@ -187,7 +186,7 @@ const navItems = computed(() => [
   padding: 7px 6px;
   border-radius: 8px;
   color: var(--sidebar-text);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   background: rgba(122, 176, 232, 0.08);
   border: 0.5px solid rgba(122, 176, 232, 0.2);
@@ -204,7 +203,7 @@ const navItems = computed(() => [
   padding: 8px 10px;
   border-radius: 8px;
   color: var(--sidebar-text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   background: none;
   border: none;

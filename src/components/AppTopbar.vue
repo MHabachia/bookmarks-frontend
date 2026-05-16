@@ -3,12 +3,7 @@
 
     <!-- Obere Leiste -->
     <header class="topbar">
-      <!--
-        Seitentitel-Fix:
-        - font-size von 15px → 20px
-        - font-weight von 500 → 700 (bold)
-        - Zeigt den Titel je nach aktivem Filter dynamisch an
-      -->
+
       <h1 class="topbar-title">{{ filterTitle }}</h1>
 
       <div class="topbar-right">
@@ -46,10 +41,9 @@
       </div>
     </header>
 
-    <!-- Seiten-Inhalt (RouterView wird hier eingebettet via slot) -->
     <slot />
 
-    <!-- Footer — aus dem Mockup -->
+    <!-- Footer -->
     <footer class="page-footer">
       © BookmarkIt · WebTech Projekt SoSe2026 · HTW Berlin
     </footer>
@@ -58,16 +52,7 @@
 </template>
 
 <script setup>
-/**
- * AppTopbar.vue — Änderungen:
- *
- * 1. Seitentitel: font-size 20px + font-weight 700 (bold)
- * 2. filterTitle: zeigt den passenden Titel je nach aktivem Filter
- *    (inject von App.vue) — "Alle Lesezeichen", "Favoriten" usw.
- * 3. Footer hinzugefügt: steht jetzt unterhalb des Seiteninhalts
- *    Die Komponente umschließt jetzt den Inhalt per <slot> +
- *    Footer — so erscheint der Footer immer am Ende der Seite
- */
+
 import { ref, inject, computed, onMounted, onUnmounted } from 'vue'
 
 defineProps({ isDark: Boolean })
@@ -122,7 +107,7 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   flex-shrink: 0;
 }
 
-/* Titel — größer und bold */
+/* Titel */
 .topbar-title {
   font-size: 20px;
   font-weight: 700;
@@ -228,10 +213,10 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
 
 /* Footer */
 .page-footer {
-  padding: 16px 24px;        /* vorher 10px — mehr Luft */
+  padding: 16px 24px;
   border-top: 1px solid var(--border);
   text-align: center;
-  font-size: 13px;            /* vorher 11px — größere Schrift */
+  font-size: 13px;
   font-weight: 500;
   color: var(--muted);
   background: var(--topbar);
