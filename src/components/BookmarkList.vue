@@ -12,7 +12,11 @@
       <i class="ti ti-loader"></i> Lade Bookmarks...
     </p>
 
-    <div v-else class="bookmark-grid">
+    <p v-if="error" class="status warning">
+      <i class="ti ti-alert-triangle"></i> {{ error }}
+    </p>
+
+    <div v-if="!loading" class="bookmark-grid">
       <BookmarkItem
         v-for="bookmark in filteredBookmarks"
         :key="bookmark.id"
@@ -38,7 +42,7 @@
 
 <script setup>
 /**
- * Hauptkomponente zur Anzeige der Bookmark-Liste.
+ * @fileoverview Hauptkomponente zur Anzeige der Bookmark-Liste.
  *
  * Verantwortlichkeiten:
  * - Lädt Bookmarks vom Backend (GET /api/bookmarks) beim Mounten
@@ -47,11 +51,15 @@
  * - Verwaltet den Modal-Zustand für Add- und Edit-Aktionen
  * - Delegiert Hinzufügen, Bearbeiten und Löschen lokal
  *
- *
  * Datenfluss:
  * - bookmarks und activeFilter per inject() von App.vue
  * - BookmarkItem emittiert 'edit' und 'delete'
  * - BookmarkModal emittiert 'save' und 'close'
+ *
+ * @component BookmarkList
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 1.3
+ * @since SoSe 2026
  */
 import { ref, inject, computed, onMounted } from 'vue'
 import BookmarkItem from './BookmarkItem.vue'
@@ -73,6 +81,7 @@ const activeFilter = inject('activeFilter')
 
 /** Gibt an ob der API-Call noch läuft. @type {import('vue').Ref<boolean>} */
 const loading = ref(true)
+const error = ref(null)
 
 /** Gibt an ob das Modal sichtbar ist. @type {import('vue').Ref<boolean>} */
 const modalOpen = ref(false)
@@ -105,7 +114,6 @@ function closeModal() { modalOpen.value = false; editingBookmark.value = null }
  *
  * Im Edit-Modus: ersetzt das bestehende Bookmark in der Liste.
  * Im Add-Modus: fügt ein neues Bookmark mit temporärer ID hinzu.
- * Ab M4 werden hier POST/PUT API-Calls eingebaut.
  *
  * @param {Object} data - Die Formulardaten aus BookmarkModal
  */
@@ -121,7 +129,6 @@ function saveBookmark(data) {
 
 /**
  * Löscht ein Bookmark aus der lokalen Liste.
- * Ab M4 wird hier ein DELETE API-Call eingebaut.
  *
  * @param {Object} b - Das zu löschende Bookmark-Objekt
  */
@@ -154,10 +161,10 @@ const filteredBookmarks = computed(() => {
  * @type {Array<{id: number, title: string, url: string, description: string, tags: string[]}>}
  */
 const mockData = [
-  { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',         description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium']  },
-  { id: 2, title: 'Spring Boot Docs', url: 'https://docs.spring.io/spring-boot', description: 'Offizielle Spring Boot Dokumentation',         tags: ['Backend']  },
-  { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                 description: 'Offizielle Vue.js 3 Dokumentation',            tags: ['Frontend'] },
-  { id: 4, title: 'MDN Web Docs',     url: 'https://developer.mozilla.org',     description: 'Web-Entwicklungs-Referenz von Mozilla',         tags: ['Referenz'] }
+  { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',         description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium', 'HTW']       },
+  { id: 2, title: 'Youtube DE', url: 'https://www.youtube.de', description: 'Deutschland Youtube Streaming Platform',         tags: ['media', 'stream']      },
+  { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                 description: 'Offizielle Vue.js 3 Dokumentation',            tags: ['Frontend', 'Vue']      },
+  { id: 4, title: 'Facebook DE',     url: 'https://www.facebook.de',     description: 'Meta Facebook ',         tags: ['Socialmedia'] }
 ]
 
 /**
@@ -172,8 +179,10 @@ onMounted(async () => {
     if (!response.ok) throw new Error('HTTP Fehler: ' + response.status)
     bookmarks.value = await response.json()
   } catch {
+    // Backend nicht erreichbar → Mock-Daten laden + Warnung anzeigen
     console.warn('Backend nicht erreichbar, lade Mock-Daten.')
     bookmarks.value = mockData
+    error.value = 'Backend nicht erreichbar — Mock-Daten werden angezeigt.'
   } finally {
     loading.value = false
   }
@@ -213,7 +222,7 @@ onMounted(async () => {
 .add-btn:hover { opacity: 0.9; }
 .bookmark-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
 .status {
@@ -223,5 +232,11 @@ onMounted(async () => {
   padding: 1rem;
   color: var(--muted);
   font-size: 14px;
+}
+.status.warning {
+  color: #b45309;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 </style>

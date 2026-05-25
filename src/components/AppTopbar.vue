@@ -45,7 +45,7 @@
 
     <!-- Footer -->
     <footer class="page-footer">
-      © BookmarkIt · WebTech Projekt SoSe2026 · HTW Berlin
+      © BookmarkIt - Lesezeichen Manager· WebTechnologie Projekt SoSe2026 · HTW Berlin
     </footer>
 
   </div>

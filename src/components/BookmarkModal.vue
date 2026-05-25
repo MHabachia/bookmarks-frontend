@@ -9,22 +9,56 @@
       </div>
 
       <div class="modal-body">
+
+        <!-- Feld 1: Titel -->
         <div class="field">
           <label>Titel</label>
           <input v-model="form.title" type="text" placeholder="z.B. Vue.js Dokumentation" />
         </div>
+
+        <!-- Feld 2: URL -->
         <div class="field">
           <label>URL</label>
           <input v-model="form.url" type="url" placeholder="https://..." />
         </div>
+
+        <!-- Feld 3: Beschreibung -->
         <div class="field">
           <label>Beschreibung</label>
           <input v-model="form.description" type="text" placeholder="Kurze Beschreibung (optional)" />
         </div>
+
+        <!-- Feld 4: Tags als Chips -->
         <div class="field">
-          <label>Tag / Kategorie</label>
-          <input v-model="form.tag" type="text" placeholder="z.B. Studium, Frontend, Backend" />
+          <label>Tags / Kategorien</label>
+          <div class="tag-input-wrap" @click="focusTagInput">
+
+            <!-- bestehende Tags als Chips -->
+            <span
+              v-for="(tag, index) in form.tags"
+              :key="index"
+              class="tag-chip"
+            >
+              {{ tag }}
+              <button class="tag-remove" @click.stop="removeTag(index)">
+                <i class="ti ti-x"></i>
+              </button>
+            </span>
+
+            <!-- Eingabefeld für neuen Tag -->
+            <input
+              ref="tagInputRef"
+              v-model="tagInput"
+              class="tag-input"
+              placeholder="Tag eingeben + Enter"
+              @keydown.enter.prevent="addTag"
+              @keydown.comma.prevent="addTag"
+              @keydown.backspace="removeLastTag"
+            />
+          </div>
+          <span class="field-hint">Enter oder Komma drücken um einen Tag hinzuzufügen</span>
         </div>
+
       </div>
 
       <div class="modal-footer">
@@ -34,36 +68,14 @@
           {{ isEdit ? 'Speichern' : 'Hinzufügen' }}
         </button>
       </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-/**
- *  Modal-Dialog zum Hinzufügen und Bearbeiten von Bookmarks.
- *
- * Wird für zwei Anwendungsfälle genutzt:
- *
- * 1. ADD-MODUS (isEdit = false, bookmark = null):
- *    - Alle Felder sind leer
- *    - Button-Text: "Hinzufügen"
- *    - emit('save') sendet ein neues Objekt ohne ID
- *
- * 2. EDIT-MODUS (isEdit = true, bookmark = Objekt):
- *    - Felder werden mit bestehenden Werten befüllt (via watch)
- *    - Button-Text: "Speichern"
- *    - emit('save') sendet das aktualisierte Objekt mit ID
- *
- * Der Speichern-Button ist deaktiviert solange Titel oder URL leer sind.
- * Klick auf das dunkle Overlay (@click.self) schließt das Modal.
- *
- * @component BookmarkModal
- * @prop {Object|null} bookmark - Das zu bearbeitende Bookmark (null im Add-Modus)
- * @prop {boolean} isEdit - true = Edit-Modus, false = Add-Modus
- * @emits {void} close - Modal soll geschlossen werden
- * @emits {Object} save - Formulardaten zum Speichern
- */
-import { reactive, watch } from 'vue'
+
+import { reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   bookmark: { type: Object, default: null },
@@ -74,52 +86,83 @@ const emit = defineEmits(['close', 'save'])
 
 /**
  * Reaktiver Formular-Zustand.
- * reactive() wird statt ref() verwendet da es sich um ein Objekt handelt —
- * Zugriff ohne .value: form.title statt form.value.title.
- *
- * @type {{ title: string, url: string, description: string, tag: string }}
+ * tags ist jetzt ein Array — jeder Chip ist ein einzelner String.
+ * @type {{ title: string, url: string, description: string, tags: string[] }}
  */
 const form = reactive({
   title:       '',
   url:         '',
   description: '',
-  tag:         ''
+  tags:        []
 })
 
+/** Aktuell getippter Tag-Text (noch nicht als Chip hinzugefügt). */
+const tagInput = ref('')
+
+/** Template-Ref auf das Tag-Eingabefeld für programmatischen Fokus. */
+const tagInputRef = ref(null)
+
+/** Fokussiert das Tag-Eingabefeld wenn man auf den Container klickt. */
+function focusTagInput() {
+  tagInputRef.value?.focus()
+}
+
 /**
- * Befüllt das Formular wenn ein Bookmark zum Bearbeiten übergeben wird.
- *
- * immediate: true — wird sofort beim Öffnen des Modals ausgeführt,
- * nicht erst bei der nächsten Änderung des bookmark-Props.
- *
- * tags?.[0] — nur der erste Tag wird angezeigt da das Formular
- * aktuell nur ein Tag-Feld hat.
+ * Fügt den aktuell getippten Text als neuen Tag-Chip hinzu.
+ * Trimmt Leerzeichen, verhindert leere oder doppelte Tags.
+ */
+function addTag() {
+  const val = tagInput.value.trim().replace(/,$/, '')
+  if (val && !form.tags.includes(val)) {
+    form.tags.push(val)
+  }
+  tagInput.value = ''
+}
+
+/**
+ * Entfernt einen Tag-Chip per Index.
+ * @param {number} index - Index des zu entfernenden Tags
+ */
+function removeTag(index) {
+  form.tags.splice(index, 1)
+}
+
+/**
+ * Entfernt den letzten Tag-Chip per Backspace,
+ * aber nur wenn das Eingabefeld leer ist.
+ */
+function removeLastTag() {
+  if (tagInput.value === '' && form.tags.length > 0) {
+    form.tags.pop()
+  }
+}
+
+/**
+ * Befüllt das Formular im Edit-Modus mit bestehenden Werten.
  */
 watch(() => props.bookmark, (b) => {
   if (b) {
     form.title       = b.title ?? ''
     form.url         = b.url ?? ''
     form.description = b.description ?? ''
-    form.tag         = b.tags?.[0] ?? ''
+    form.tags        = b.tags ? [...b.tags] : []
   }
 }, { immediate: true })
 
 /**
  * Validiert und sendet die Formulardaten.
- *
- * Bricht ab wenn Titel oder URL fehlen.
- * Sendet das zusammengesetzte Objekt per emit('save') an BookmarkList.
- * Der Spread-Operator (...props.bookmark) erhält die ID und andere
- * bestehende Felder im Edit-Modus.
+ * Fügt noch nicht bestätigte Tag-Eingabe automatisch hinzu.
  */
 function save() {
   if (!form.title || !form.url) return
+  // Falls noch Text im Tag-Feld steht der nicht per Enter bestätigt wurde
+  if (tagInput.value.trim()) addTag()
   emit('save', {
     ...(props.bookmark ?? {}),
     title:       form.title,
     url:         form.url,
     description: form.description,
-    tags:        form.tag ? [form.tag] : []
+    tags:        [...form.tags]
   })
 }
 </script>
@@ -138,7 +181,7 @@ function save() {
   background: var(--card);
   border: 0.5px solid var(--border);
   border-radius: 16px;
-  width: 440px;
+  width: 460px;
   max-width: 90vw;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
@@ -153,15 +196,22 @@ function save() {
 .modal-header h2 { font-size: 16px; font-weight: 700; color: var(--text); }
 .modal-close {
   background: none; border: none; color: var(--muted);
-  padding: 4px; border-radius: 6px; display: flex; align-items: center;
+  padding: 4px; border-radius: 6px; display: flex; align-items: center; cursor: pointer;
 }
 .modal-close i { font-size: 18px; }
 .modal-close:hover { background: var(--hover); color: var(--text); }
+
 .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field label {
   font-size: 12px; font-weight: 600; color: var(--muted);
   text-transform: uppercase; letter-spacing: 0.5px;
+}
+.field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.7;
 }
 .field input {
   background: var(--bg); border: 1px solid var(--border);
@@ -173,19 +223,80 @@ function save() {
   box-shadow: 0 0 0 3px rgba(26, 109, 191, 0.12);
 }
 .field input::placeholder { color: var(--muted); opacity: 0.6; }
+
+/* Tag-Chip Eingabefeld */
+.tag-input-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: text;
+  min-height: 42px;
+  transition: border-color 0.15s;
+}
+.tag-input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26, 109, 191, 0.12);
+}
+
+/* Einzelner Tag-Chip */
+.tag-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tag-bg);
+  color: var(--accent);
+  border-radius: 99px;
+  padding: 3px 8px 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tag-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+  opacity: 0.7;
+  border-radius: 50%;
+}
+.tag-remove:hover { opacity: 1; }
+.tag-remove i { font-size: 11px; }
+
+/* Unsichtbares Eingabefeld innerhalb des Chip-Containers */
+.tag-input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 2px 4px !important;
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  min-width: 120px;
+}
+.tag-input::placeholder { color: var(--muted); opacity: 0.5; }
+
 .modal-footer {
   display: flex; justify-content: flex-end; gap: 10px;
   padding: 16px 20px; border-top: 0.5px solid var(--border);
 }
 .btn-cancel {
   background: none; border: 0.5px solid var(--border);
-  border-radius: 8px; padding: 8px 16px; font-size: 13px; color: var(--muted);
+  border-radius: 8px; padding: 8px 16px; font-size: 13px; color: var(--muted); cursor: pointer;
 }
 .btn-cancel:hover { background: var(--hover); }
 .btn-save {
   display: flex; align-items: center; gap: 6px;
   background: var(--btn); color: var(--btn-text); border: none;
-  border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600;
+  border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
 }
 .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-save:not(:disabled):hover { opacity: 0.9; }
