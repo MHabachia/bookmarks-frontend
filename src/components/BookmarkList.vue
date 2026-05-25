@@ -23,6 +23,8 @@
         :bookmark="bookmark"
         @edit="openEdit"
         @delete="deleteBookmark"
+        @toggle-favorit="toggleBookmark"
+        @toggle-gelesen="toggleBookmark"
       />
     </div>
 
@@ -49,7 +51,6 @@
  * - Fällt bei nicht erreichbarem Backend auf Mock-Daten zurück
  * - Filtert Bookmarks je nach aktivem Filter aus AppSidebar
  * - Verwaltet den Modal-Zustand für Add- und Edit-Aktionen
- * - Delegiert Hinzufügen, Bearbeiten und Löschen lokal
  *
  * Datenfluss:
  * - bookmarks und activeFilter per inject() von App.vue
@@ -78,6 +79,7 @@ const bookmarks = inject('bookmarks')
  * @type {import('vue').Ref<string>}
  */
 const activeFilter = inject('activeFilter')
+const searchQuery  = inject('searchQuery')
 
 /** Gibt an ob der API-Call noch läuft. @type {import('vue').Ref<boolean>} */
 const loading = ref(true)
@@ -137,6 +139,15 @@ function deleteBookmark(b) {
 }
 
 /**
+ * Aktualisiert ein Bookmark in der Liste (für Favorit/Gelesen Toggle).
+ * @param {Object} updated - Das aktualisierte Bookmark-Objekt
+ */
+function toggleBookmark(updated) {
+  const idx = bookmarks.value.findIndex(b => b.id === updated.id)
+  if (idx !== -1) bookmarks.value[idx] = updated
+}
+
+/**
  * Gefilterte Bookmark-Liste basierend auf dem aktiven Filter.
  *
  * Wird automatisch neu berechnet wenn sich bookmarks
@@ -145,14 +156,29 @@ function deleteBookmark(b) {
  * @type {import('vue').ComputedRef<Array>}
  */
 const filteredBookmarks = computed(() => {
-  const all = bookmarks.value ?? []
+  let all = bookmarks.value ?? []
+
+  // Filter nach Kategorie
   switch (activeFilter.value) {
-    case 'ungelesen': return all.filter(b => !b.gelesen)
-    case 'favoriten': return all.filter(b => b.favorit)
-    case 'gelesen':   return all.filter(b => b.gelesen)
-    case 'tags':      return all
-    default:          return all
+    case 'ungelesen': all = all.filter(b => !b.gelesen); break
+    case 'favoriten': all = all.filter(b => b.favorit);  break
+    case 'gelesen':   all = all.filter(b => b.gelesen);  break
+    case 'tags':                                          break
+    default:                                              break
   }
+
+  // Filter nach Suchbegriff (Titel, URL, Beschreibung)
+  const q = searchQuery?.value?.toLowerCase().trim()
+  if (q) {
+    all = all.filter(b =>
+      b.title?.toLowerCase().includes(q) ||
+      b.url?.toLowerCase().includes(q) ||
+      b.description?.toLowerCase().includes(q) ||
+      b.tags?.some(t => t.toLowerCase().includes(q))
+    )
+  }
+
+  return all
 })
 
 /**
@@ -164,7 +190,7 @@ const mockData = [
   { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',         description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium', 'HTW']       },
   { id: 2, title: 'Youtube DE', url: 'https://www.youtube.de', description: 'Deutschland Youtube Streaming Platform',         tags: ['media', 'stream']      },
   { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                 description: 'Offizielle Vue.js 3 Dokumentation',            tags: ['Frontend', 'Vue']      },
-  { id: 4, title: 'Facebook DE',     url: 'https://www.facebook.de',     description: 'Meta Facebook ',         tags: ['Socialmedia'] }
+  { id: 4, title: 'Facebook DE',     url: 'https://wwww.facebook.de',     description: 'Meta Facebook ',         tags: ['Socialmedia'] }
 ]
 
 /**
@@ -182,7 +208,7 @@ onMounted(async () => {
     // Backend nicht erreichbar → Mock-Daten laden + Warnung anzeigen
     console.warn('Backend nicht erreichbar, lade Mock-Daten.')
     bookmarks.value = mockData
-    error.value = 'Backend nicht erreichbar — Mock-Daten werden angezeigt.'
+    error.value = 'Backend nicht erreichbar — Beispieldaten werden angezeigt.'
   } finally {
     loading.value = false
   }

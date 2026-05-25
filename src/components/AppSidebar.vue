@@ -39,7 +39,7 @@
         Abmelden
       </button>
       <div class="footer-meta">
-        <p>Version 1.0 · SoSe2026</p>
+        <p>Version 1.3 · SoSe2026</p>
       </div>
     </div>
   </aside>

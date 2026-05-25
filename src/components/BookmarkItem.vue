@@ -16,19 +16,43 @@
           <span class="card-title">{{ bookmark.title }}</span>
         </div>
 
-        <div class="menu-wrap" ref="menuWrap">
-          <button class="card-menu" @click="toggleMenu">
-            <i class="ti ti-dots-vertical"></i>
+        <!-- Aktions-Buttons: Favorit, Gelesen, Dreipunkt-Menü -->
+        <div class="card-actions">
+          <!-- Favorit-Button -->
+          <button
+            class="action-btn"
+            :class="{ active: bookmark.favorit }"
+            @click="toggleFavorit"
+            :title="bookmark.favorit ? 'Aus Favoriten entfernen' : 'Als Favorit markieren'"
+          >
+            <i :class="bookmark.favorit ? 'ti ti-star-filled' : 'ti ti-star'"></i>
           </button>
-          <div class="card-dropdown" :class="{ open: menuOpen }">
-            <button class="card-dropdown-item" @click="onEdit">
-              <i class="ti ti-edit"></i>
-              Bearbeiten
+
+          <!-- Gelesen-Button -->
+          <button
+            class="action-btn"
+            :class="{ active: bookmark.gelesen }"
+            @click="toggleGelesen"
+            :title="bookmark.gelesen ? 'Als ungelesen markieren' : 'Als gelesen markieren'"
+          >
+            <i :class="bookmark.gelesen ? 'ti ti-circle-check-filled' : 'ti ti-circle-check'"></i>
+          </button>
+
+          <!-- Dreipunkt-Menü -->
+          <div class="menu-wrap" ref="menuWrap">
+            <button class="action-btn" @click="toggleMenu">
+              <i class="ti ti-dots-vertical"></i>
             </button>
-            <button class="card-dropdown-item danger" @click="onDelete">
-              <i class="ti ti-trash"></i>
-              Löschen
-            </button>
+            <div class="card-dropdown" :class="{ open: menuOpen }">
+              <button class="card-dropdown-item" @click="onEdit">
+                <i class="ti ti-edit"></i>
+                Bearbeiten
+              </button>
+              <button class="card-dropdown-item danger" @click="onDelete">
+                <i class="ti ti-trash"></i>
+                Löschen
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -49,7 +73,7 @@
 
 <script setup>
 /**
- * Einzelne Bookmark-Karte.
+ * @fileoverview Einzelne Bookmark-Karte.
  *
  * Stellt einen Bookmark als Karte mit folgenden Elementen dar:
  * - Favicon (via Google S2 Favicon API) mit Fallback-Icon
@@ -70,11 +94,14 @@
  * @prop {string[]} bookmark.tags - Liste der Tags
  * @emits {Object} edit - Das zu bearbeitende Bookmark-Objekt
  * @emits {Object} delete - Das zu löschende Bookmark-Objekt
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 1.3
+ * @since SoSe 2026
  */
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({ bookmark: { type: Object, required: true } })
-const emit = defineEmits(['edit', 'delete'])
+const emit = defineEmits(['edit', 'delete', 'toggle-favorit', 'toggle-gelesen'])
 
 /** Template-Ref auf das Favicon-Bild Element. @type {import('vue').Ref} */
 const faviconImg = ref(null)
@@ -96,7 +123,7 @@ const menuOpen = ref(false)
  * Gibt bei ungültiger URL den Roh-String zurück.
  *
  * @type {import('vue').ComputedRef<string>}
- * Beispiel
+ * @example
  * // 'https://www.htw-berlin.de' → 'htw-berlin.de'
  */
 const domain = computed(() => {
@@ -127,6 +154,20 @@ function onEdit() { menuOpen.value = false; emit('edit', props.bookmark) }
  * BookmarkList entfernt daraufhin das Bookmark aus der Liste.
  */
 function onDelete() { menuOpen.value = false; emit('delete', props.bookmark) }
+
+/**
+ * Schaltet den Favorit-Status um und emittiert das Event nach oben.
+ */
+function toggleFavorit() {
+  emit('toggle-favorit', { ...props.bookmark, favorit: !props.bookmark.favorit })
+}
+
+/**
+ * Schaltet den Gelesen-Status um und emittiert das Event nach oben.
+ */
+function toggleGelesen() {
+  emit('toggle-gelesen', { ...props.bookmark, gelesen: !props.bookmark.gelesen })
+}
 
 /**
  * Schließt das Dropdown bei Klick außerhalb des Menü-Wrappers.
@@ -166,10 +207,26 @@ onUnmounted(() => document.removeEventListener('click', handleOutside))
 }
 .favicon-fallback i { font-size: 11px; color: var(--muted); }
 .card-title { font-size: 13px; font-weight: 500; color: var(--text); }
-.menu-wrap { position: relative; }
-.card-menu { background: none; border: none; padding: 2px; cursor: pointer; border-radius: 4px; }
-.card-menu i { font-size: 15px; color: var(--muted); }
-.card-menu:hover { background: var(--hover); }
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.action-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+}
+.action-btn:hover { background: var(--hover); color: var(--text); }
+.action-btn.active i { color: var(--accent); }
+.action-btn i { font-size: 15px; }
 .card-dropdown {
   position: absolute;
   top: calc(100% + 4px);
