@@ -13,7 +13,7 @@
         <!-- Feld 1: Titel -->
         <div class="field">
           <label>Titel</label>
-          <input v-model="form.title" type="text" placeholder="z.B. Vue.js Dokumentation" />
+          <input v-model="form.title" type="text" placeholder="z.B. Moodle HTW-berlin" />
         </div>
 
         <!-- Feld 2: URL -->
@@ -30,7 +30,7 @@
 
         <!-- Feld 4: Tags als Chips -->
         <div class="field">
-          <label>Tags / Kategorien</label>
+          <label>Tags</label>
           <div class="tag-input-wrap" @click="focusTagInput">
 
             <!-- bestehende Tags als Chips -->

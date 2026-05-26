@@ -63,7 +63,7 @@ const filterTitle = computed(() => ({
   ungelesen: 'Ungelesen',
   favoriten: 'Favoriten',
   gelesen:   'Gelesen',
-  tags:      'Tags / Kategorien'
+  tags:      'Tag/Kategorie'
 }[activeFilter.value] ?? 'Alle Lesezeichen'))
 
 const dropdownOpen = ref(false)

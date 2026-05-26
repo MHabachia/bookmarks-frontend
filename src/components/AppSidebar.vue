@@ -90,7 +90,7 @@ const navItems = computed(() => [
   {
     filter: 'tags',
     icon:   'tag',
-    label:  'Tags / Kategorien',
+    label:  'Tags',
     count:  [...new Set(bookmarks.value?.flatMap(b => b.tags ?? []))].length ?? 0
   }
 ])

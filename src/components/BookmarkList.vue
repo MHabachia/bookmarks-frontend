@@ -61,7 +61,7 @@
     </div>
 
     <p v-if="!loading && !isTagsView && filteredBookmarks.length === 0" class="status">
-      Keine Bookmarks in dieser Kategorie.
+      Keine Bookmarks verfügbar in diese Ansicht.
     </p>
 
     <!-- Bestätigungs-Dialog beim Löschen -->
