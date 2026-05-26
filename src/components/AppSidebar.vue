@@ -32,7 +32,7 @@
       </div>
       <RouterLink to="/about" class="footer-item">
         <i class="ti ti-file-description"></i>
-        Dokumentation
+        Über diese App
       </RouterLink>
       <button class="footer-item danger">
         <i class="ti ti-logout"></i>
