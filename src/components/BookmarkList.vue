@@ -1,7 +1,8 @@
 <template>
   <section class="bookmark-section">
     <div class="section-header">
-      <h2>{{ filteredBookmarks.length }} Lesezeichen</h2>
+      <h2 v-if="!isTagsView">{{ filteredBookmarks.length }} Lesezeichen</h2>
+      <h2 v-else>{{ tagGroups.length }} Tags · {{ bookmarks.length }} Lesezeichen</h2>
       <button class="add-btn" @click="openAdd">
         <i class="ti ti-plus"></i>
         Add Bookmark
@@ -16,10 +17,11 @@
       <i class="ti ti-alert-triangle"></i> {{ error }}
     </p>
 
-    <div v-if="!loading" class="bookmark-grid">
+    <!-- Normal-Ansicht: flache Grid-Liste -->
+    <div v-if="!loading && !isTagsView" class="bookmark-grid">
       <BookmarkItem
         v-for="bookmark in filteredBookmarks"
-        :key="bookmark.id + '-' + bookmark.favorit + '-' + bookmark.gelesen"
+        :key="`${bookmark.id}-${bookmark.favorit ? 1 : 0}-${bookmark.gelesen ? 1 : 0}`"
         :bookmark="bookmark"
         @edit="openEdit"
         @delete="deleteBookmark"
@@ -28,9 +30,59 @@
       />
     </div>
 
-    <p v-if="!loading && filteredBookmarks.length === 0" class="status">
+    <!-- Tag-Ansicht: nach Tag gruppiert -->
+    <div v-if="!loading && isTagsView" class="tag-groups">
+      <div
+        v-for="group in tagGroups"
+        :key="group.tag"
+        class="tag-group"
+      >
+        <div class="tag-group-header">
+          <i class="ti ti-tag"></i>
+          <span class="tag-group-name">{{ group.tag }}</span>
+          <span class="tag-group-count">{{ group.bookmarks.length }}</span>
+        </div>
+        <div class="bookmark-grid">
+          <BookmarkItem
+            v-for="bookmark in group.bookmarks"
+            :key="`${bookmark.id}-${bookmark.favorit ? 1 : 0}-${bookmark.gelesen ? 1 : 0}`"
+            :bookmark="bookmark"
+            @edit="openEdit"
+            @delete="deleteBookmark"
+            @toggle-favorit="toggleBookmark"
+            @toggle-gelesen="toggleBookmark"
+          />
+        </div>
+      </div>
+
+      <div v-if="tagGroups.length === 0" class="status">
+        Keine Tags vorhanden.
+      </div>
+    </div>
+
+    <p v-if="!loading && !isTagsView && filteredBookmarks.length === 0" class="status">
       Keine Bookmarks in dieser Kategorie.
     </p>
+
+    <!-- Bestätigungs-Dialog beim Löschen -->
+    <div v-if="deleteConfirm.open" class="confirm-overlay" @click.self="deleteConfirm.open = false">
+      <div class="confirm-dialog">
+        <div class="confirm-icon">
+          <i class="ti ti-trash"></i>
+        </div>
+        <h3>Bookmark löschen?</h3>
+        <p>„{{ deleteConfirm.bookmark?.title }}" wird unwiderruflich gelöscht.</p>
+        <div class="confirm-actions">
+          <button class="confirm-cancel" @click="deleteConfirm.open = false">
+            Abbrechen
+          </button>
+          <button class="confirm-delete" @click="confirmDelete">
+            <i class="ti ti-trash"></i>
+            Löschen
+          </button>
+        </div>
+      </div>
+    </div>
 
     <BookmarkModal
       v-if="modalOpen"
@@ -43,90 +95,40 @@
 </template>
 
 <script setup>
-/**
- * @fileoverview Hauptkomponente zur Anzeige der Bookmark-Liste.
- *
- * Verantwortlichkeiten:
- * - Lädt Bookmarks vom Backend (GET /api/bookmarks) beim Mounten
- * - Fällt bei nicht erreichbarem Backend auf Mock-Daten zurück
- * - Filtert Bookmarks je nach aktivem Filter aus AppSidebar
- * - Verwaltet den Modal-Zustand für Add- und Edit-Aktionen
- * - Delegiert Hinzufügen, Bearbeiten und Löschen lokal
- *   (ab M4: API-Calls für POST/PUT/DELETE)
- *
- * Datenfluss:
- * - bookmarks und activeFilter per inject() von App.vue
- * - BookmarkItem emittiert 'edit' und 'delete'
- * - BookmarkModal emittiert 'save' und 'close'
- *
- * @component BookmarkList
- * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.0
- * @since SoSe 2026
- */
-import { ref, inject, computed, onMounted } from 'vue'
+
+import { ref, reactive, inject, computed, onMounted } from 'vue'
 import BookmarkItem from './BookmarkItem.vue'
 import BookmarkModal from './BookmarkModal.vue'
 
-/**
- * Gemeinsame Bookmark-Liste aus App.vue.
- * Nach dem Laden wird sie hier befüllt — Sidebar-Badges
- * aktualisieren sich dadurch automatisch.
- * @type {import('vue').Ref<Array>}
- */
 const bookmarks = inject('bookmarks')
 
-/**
- * Aktuell aktiver Filter aus App.vue.
- * @type {import('vue').Ref<string>}
- */
 const activeFilter = inject('activeFilter')
-const searchQuery  = inject('searchQuery')
+const showToast    = inject('showToast')
 
-/** Gibt an ob der API-Call noch läuft. @type {import('vue').Ref<boolean>} */
+const isTagsView = computed(() => activeFilter.value === 'tags')
+
 const loading = ref(true)
 const error = ref(null)
 
-/** Gibt an ob das Modal sichtbar ist. @type {import('vue').Ref<boolean>} */
 const modalOpen = ref(false)
 
-/**
- * Das Bookmark das gerade bearbeitet wird.
- * null = Add-Modus, Objekt = Edit-Modus.
- * @type {import('vue').Ref<Object|null>}
- */
+
+const deleteConfirm = reactive({ open: false, bookmark: null })
+
+
 const editingBookmark = ref(null)
 
-/**
- * Öffnet das Modal im Add-Modus (kein Bookmark vorausgewählt).
- */
 function openAdd() { editingBookmark.value = null; modalOpen.value = true }
 
-/**
- * Öffnet das Modal im Edit-Modus mit dem gewählten Bookmark.
- * @param {Object} b - Das zu bearbeitende Bookmark-Objekt
- */
+
 function openEdit(b) { editingBookmark.value = b; modalOpen.value = true }
 
-/**
- * Schließt das Modal und setzt den Edit-Zustand zurück.
- */
 function closeModal() { modalOpen.value = false; editingBookmark.value = null }
 
-/**
- * Speichert ein neues oder bearbeitetes Bookmark lokal.
- *
- * Im Edit-Modus: ersetzt das bestehende Bookmark in der Liste.
- * Im Add-Modus: fügt ein neues Bookmark mit temporärer ID hinzu.
- * Ab M4 werden hier POST/PUT API-Calls eingebaut.
- *
- * @param {Object} data - Die Formulardaten aus BookmarkModal
- */
 async function saveBookmark(data) {
   try {
     if (editingBookmark.value) {
       // PUT — Bookmark aktualisieren
-      // editingBookmark.value.id verwenden falls data.id fehlt
       const id = data.id ?? editingBookmark.value.id
       const response = await fetch('/api/bookmarks/' + id, {
         method: 'PUT',
@@ -137,6 +139,7 @@ async function saveBookmark(data) {
       const updated = await response.json()
       const idx = bookmarks.value.findIndex(b => b.id === updated.id)
       if (idx !== -1) bookmarks.value.splice(idx, 1, updated)
+      showToast('Bookmark wurde aktualisiert ✏️')
     } else {
       // POST — neues Bookmark erstellen
       const response = await fetch('/api/bookmarks', {
@@ -147,35 +150,40 @@ async function saveBookmark(data) {
       if (!response.ok) throw new Error('Fehler beim Erstellen')
       const created = await response.json()
       bookmarks.value.push(created)
+      showToast('Bookmark wurde hinzugefügt ✅')
     }
     closeModal()
   } catch (e) {
     console.error('saveBookmark Fehler:', e)
+    showToast('Fehler beim Speichern', 'error')
   }
 }
 
-/**
- * Löscht ein Bookmark per DELETE API-Call.
- * @param {Object} b - Das zu löschende Bookmark-Objekt
- */
-async function deleteBookmark(b) {
+function deleteBookmark(b) {
+  deleteConfirm.bookmark = b
+  deleteConfirm.open     = true
+}
+
+async function confirmDelete() {
+  const b = deleteConfirm.bookmark
+  deleteConfirm.open = false
   try {
-    const response = await fetch('/api/bookmarks/' + b.id, {
-      method: 'DELETE'
-    })
+    const response = await fetch('/api/bookmarks/' + b.id, { method: 'DELETE' })
     if (!response.ok) throw new Error('Fehler beim Löschen')
     bookmarks.value = bookmarks.value.filter(x => x.id !== b.id)
+    showToast('Bookmark wurde gelöscht 🗑️', 'info')
   } catch (e) {
-    console.error('deleteBookmark Fehler:', e)
+    console.error('confirmDelete Fehler:', e)
+    showToast('Fehler beim Löschen', 'error')
   }
 }
 
-/**
- * Aktualisiert Favorit/Gelesen Status per PUT API-Call.
- * @param {Object} updated - Das aktualisierte Bookmark-Objekt
- */
 async function toggleBookmark(updated) {
   try {
+    const original = bookmarks.value.find(b => b.id === updated.id)
+    const favoritGeandert = original?.favorit !== updated.favorit
+    const gelesenGeandert = original?.gelesen !== updated.gelesen
+
     const response = await fetch('/api/bookmarks/' + updated.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -183,21 +191,20 @@ async function toggleBookmark(updated) {
     })
     if (!response.ok) throw new Error('Fehler beim Aktualisieren')
     const result = await response.json()
-    const idx = bookmarks.value.findIndex(b => b.id === result.id)
-    if (idx !== -1) bookmarks.value.splice(idx, 1, result)
+    bookmarks.value = bookmarks.value.map(b => b.id === result.id ? result : b)
+
+    if (favoritGeandert) {
+      showToast(result.favorit ? '⭐ Als Favorit markiert' : '★ Aus Favoriten entfernt')
+    } else if (gelesenGeandert) {
+      showToast(result.gelesen ? '✓ Als gelesen markiert' : '○ Als ungelesen markiert')
+    }
   } catch (e) {
     console.error('toggleBookmark Fehler:', e)
+    showToast('Fehler beim Aktualisieren', 'error')
   }
 }
 
-/**
- * Gefilterte Bookmark-Liste basierend auf dem aktiven Filter.
- *
- * Wird automatisch neu berechnet wenn sich bookmarks
- * oder activeFilter ändert.
- *
- * @type {import('vue').ComputedRef<Array>}
- */
+
 const filteredBookmarks = computed(() => {
   let all = bookmarks.value ?? []
 
@@ -210,38 +217,38 @@ const filteredBookmarks = computed(() => {
     default:                                              break
   }
 
-  // Filter nach Suchbegriff (Titel, URL, Beschreibung)
-  const q = searchQuery?.value?.toLowerCase().trim()
-  if (q) {
-    all = all.filter(b =>
-      b.title?.toLowerCase().includes(q) ||
-      b.url?.toLowerCase().includes(q) ||
-      b.description?.toLowerCase().includes(q) ||
-      b.tags?.some(t => t.toLowerCase().includes(q))
-    )
-  }
-
   return all
 })
 
-/**
- * Beispieldaten für den Fall dass das Backend nicht erreichbar ist.
- * Ermöglicht Frontend-Entwicklung ohne laufendes Backend.
- * @type {Array<{id: number, title: string, url: string, description: string, tags: string[]}>}
- */
+const tagGroups = computed(() => {
+  const all = bookmarks.value ?? []
+  const map = new Map()
+
+  all.forEach(bookmark => {
+    const tags = bookmark.tags?.length ? bookmark.tags : ['Ohne Tag']
+    tags.forEach(tag => {
+      if (!map.has(tag)) map.set(tag, [])
+      map.get(tag).push(bookmark)
+    })
+  })
+
+  // Sortiert nach Tag-Name, "Ohne Tag" immer zuletzt
+  return [...map.entries()]
+    .sort(([a], [b]) => {
+      if (a === 'Ohne Tag') return 1
+      if (b === 'Ohne Tag') return -1
+      return a.localeCompare(b)
+    })
+    .map(([tag, bookmarks]) => ({ tag, bookmarks }))
+})
+
 const mockData = [
   { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',         description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium', 'HTW']       },
-  { id: 2, title: 'Spring Boot Docs', url: 'https://docs.spring.io/spring-boot', description: 'Offizielle Spring Boot Dokumentation',         tags: ['Backend', 'Java']      },
-  { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                 description: 'Offizielle Vue.js 3 Dokumentation',            tags: ['Frontend', 'Vue']      },
-  { id: 4, title: 'MDN Web Docs',     url: 'https://developer.mozilla.org',     description: 'Web-Entwicklungs-Referenz von Mozilla',         tags: ['Referenz', 'Frontend'] }
+  { id: 2, title: 'Facebook', url: 'https://facebook.com', description: 'Facebook Social media Plattform',         tags: ['Meta', 'Socialmedia']      },
+  { id: 3, title: 'Reddit',      url: 'https://www.reddit.com',                 description: 'Reddit Forum Plattform',            tags: ['Forum', 'Socialmedia']      },
+  { id: 4, title: 'Moodle HTW-Berlin',     url: 'https://moodle.htw-berlin.de',     description: 'Moodle Learning Plattform der HTW-Berlin',         tags: ['Studium', 'HTW'] }
 ]
 
-/**
- * Lädt Bookmarks vom Backend beim Mounten der Komponente.
- *
- * Vite's Proxy leitet /api/bookmarks an localhost:8080 weiter.
- * Bei einem Fehler (Backend nicht erreichbar) werden mockData geladen.
- */
 onMounted(async () => {
   try {
     const response = await fetch('/api/bookmarks')
@@ -251,7 +258,7 @@ onMounted(async () => {
     // Backend nicht erreichbar → Mock-Daten laden + Warnung anzeigen
     console.warn('Backend nicht erreichbar, lade Mock-Daten.')
     bookmarks.value = mockData
-    error.value = 'Backend nicht erreichbar — Beispieldaten werden angezeigt.'
+    error.value = 'Backend nicht erreichbar — Mock-Daten werden angezeigt.'
   } finally {
     loading.value = false
   }
@@ -294,6 +301,114 @@ onMounted(async () => {
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
+/* Bestätigungs-Dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+.confirm-dialog {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(226,75,74,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.confirm-icon i { font-size: 24px; color: #E24B4A; }
+.confirm-dialog h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+.confirm-dialog p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+}
+.confirm-cancel {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+.confirm-cancel:hover { background: var(--hover); }
+.confirm-delete {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #E24B4A;
+  border: none;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+}
+.confirm-delete:hover { opacity: 0.9; }
+.confirm-delete i { font-size: 14px; }
+
+/* Tag-Gruppen Ansicht */
+.tag-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.tag-group {}
+.tag-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.tag-group-header i {
+  font-size: 16px;
+  color: var(--accent);
+}
+.tag-group-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.tag-group-count {
+  margin-left: 4px;
+  background: var(--tag-bg);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+
 .status {
   display: flex;
   align-items: center;

@@ -127,15 +127,7 @@
 </template>
 
 <script setup>
-/**
- * @fileoverview Über-Seite der BookmarkIt-Anwendung.
- * Zeigt Projektinfos, Tech-Stack, Milestones und Team.
- *
- * @component AboutView
- * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.3
- * @since SoSe 2026
- */
+
 </script>
 
 <style scoped>

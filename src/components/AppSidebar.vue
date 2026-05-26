@@ -46,84 +46,52 @@
 </template>
 
 <script setup>
-/**
- * @fileoverview Seitenleiste der BookmarkIt-Anwendung.
- *
- * Zeigt die Navigation mit Filter-Optionen sowie den Footer-Bereich
- * mit GitHub-Repos, Dokumentation und Abmelden-Button.
- *
- * Datenfluss:
- * - bookmarks und activeFilter werden per inject() von App.vue empfangen
- * - navItems berechnet die Badge-Zahlen reaktiv aus bookmarks
- * - Bei Nav-Klick wird 'set-filter' nach oben an App.vue emittiert
- *
- * @component AppSidebar
- * @emits {string} set-filter - Der gewählte Filter-Wert
- * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.3
- * @since SoSe 2026
- */
+
 import { inject, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 defineEmits(['set-filter'])
 
-/**
- * Gemeinsame Bookmark-Liste aus App.vue.
- * Wird verwendet um die Badge-Zahlen pro Kategorie zu berechnen.
- * @type {import('vue').Ref<Array>}
- */
-const bookmarks = inject('bookmarks', { value: [] })
+/** @type {import('vue').Ref<Array>} */
+const bookmarks    = inject('bookmarks', { value: [] })
 
-/**
- * Aktuell aktiver Filter aus App.vue.
- * Bestimmt welcher Nav-Eintrag hervorgehoben wird.
- * @type {import('vue').Ref<string>}
- */
+/** @type {import('vue').Ref<string>} */
 const activeFilter = inject('activeFilter')
 
 /**
- * Berechnete Navigation-Einträge mit aktuellen Badge-Zahlen.
- *
- * Wird automatisch neu berechnet wenn sich bookmarks ändert.
- * Jeder Eintrag enthält:
- * - filter: der Filter-Schlüssel der an App.vue gesendet wird
- * - icon: Tabler Icon Name (ohne 'ti ti-' Prefix)
- * - label: Anzeigetext
- * - count: Anzahl der Bookmarks in dieser Kategorie
- *
- * @type {import('vue').ComputedRef<Array<{filter: string, icon: string, label: string, count: number}>>}
+ * Navigation-Einträge mit reaktiven Badge-Zahlen.
+ * @type {import('vue').ComputedRef<Array>}
  */
 const navItems = computed(() => [
   {
     filter: 'alle',
-    icon: 'layout-list',
-    label: 'Alle',
-    count: bookmarks.value?.length ?? 0
+    icon:   'layout-list',
+    label:  'Alle',
+    count:  bookmarks.value?.length ?? 0
   },
   {
     filter: 'ungelesen',
-    icon: 'mail-opened',
-    label: 'Ungelesen',
-    count: bookmarks.value?.filter(b => !b.gelesen).length ?? 0
+    icon:   'mail-opened',
+    label:  'Ungelesen',
+    count:  bookmarks.value?.filter(b => !b.gelesen).length ?? 0
   },
   {
     filter: 'favoriten',
-    icon: 'star',
-    label: 'Favoriten',
-    count: bookmarks.value?.filter(b => b.favorit).length ?? 0
+    icon:   'star',
+    label:  'Favoriten',
+    count:  bookmarks.value?.filter(b => b.favorit).length ?? 0
   },
   {
     filter: 'gelesen',
-    icon: 'circle-check',
-    label: 'Gelesen',
-    count: bookmarks.value?.filter(b => b.gelesen).length ?? 0
+    icon:   'circle-check',
+    label:  'Gelesen',
+    count:  bookmarks.value?.filter(b => b.gelesen).length ?? 0
   },
   {
     filter: 'tags',
-    icon: 'tag',
-    label: 'Tags / Kategorien',
-    count: [...new Set(bookmarks.value?.flatMap(b => b.tags ?? []))].length ?? 0
+    icon:   'tag',
+    label:  'Tags / Kategorien',
+    count:  [...new Set(bookmarks.value?.flatMap(b => b.tags ?? []))].length ?? 0
   }
 ])
 </script>
@@ -135,7 +103,10 @@ const navItems = computed(() => [
   background: var(--sidebar);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
 }
 .sidebar-logo {
   padding: 20px 18px;
@@ -145,12 +116,7 @@ const navItems = computed(() => [
   border-bottom: 0.5px solid var(--sidebar-border);
 }
 .sidebar-logo i { font-size: 22px; color: var(--sidebar-muted); }
-.sidebar-logo span {
-  font-size: 17px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.2px;
-}
+.sidebar-logo span { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.2px; }
 .sidebar-nav {
   padding: 12px 10px;
   flex: 1;
@@ -175,11 +141,7 @@ const navItems = computed(() => [
   transition: background 0.15s, color 0.15s;
 }
 .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
-.nav-item.active {
-  background: var(--sidebar-active-bg);
-  color: #fff;
-  font-weight: 800;
-}
+.nav-item.active { background: var(--sidebar-active-bg); color: #fff; font-weight: 800; }
 .nav-item i { font-size: 20px; }
 .nav-badge {
   margin-left: auto;
@@ -192,10 +154,7 @@ const navItems = computed(() => [
   min-width: 22px;
   text-align: center;
 }
-.nav-item.active .nav-badge {
-  background: rgba(122, 176, 232, 0.3);
-  color: #fff;
-}
+.nav-item.active .nav-badge { background: rgba(122, 176, 232, 0.3); color: #fff; }
 .sidebar-footer {
   padding: 12px 10px;
   border-top: 0.5px solid var(--sidebar-border);
@@ -203,11 +162,7 @@ const navItems = computed(() => [
   flex-direction: column;
   gap: 2px;
 }
-.repos-row {
-  display: flex;
-  gap: 6px;
-  padding: 4px 2px;
-}
+.repos-row { display: flex; gap: 6px; padding: 4px 2px; }
 .repo-btn {
   flex: 1;
   display: flex;
@@ -248,10 +203,6 @@ const navItems = computed(() => [
 .footer-item.danger { color: #f08080; }
 .footer-item.danger i { color: #f08080; }
 .footer-item.danger:hover { background: rgba(226, 75, 74, 0.12); }
-.footer-meta {
-  padding: 6px 8px 0;
-  border-top: 0.5px solid rgba(255, 255, 255, 0.06);
-  margin-top: 4px;
-}
+.footer-meta { padding: 6px 8px 0; border-top: 0.5px solid rgba(255,255,255,0.06); margin-top: 4px; }
 .footer-meta p { font-size: 11px; color: var(--sidebar-muted); opacity: 0.6; }
 </style>

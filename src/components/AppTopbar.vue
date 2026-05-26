@@ -1,9 +1,7 @@
 <template>
   <div class="topbar-and-content">
 
-    <!-- Obere Leiste -->
     <header class="topbar">
-
       <h1 class="topbar-title">{{ filterTitle }}</h1>
 
       <div class="topbar-right">
@@ -43,9 +41,8 @@
 
     <slot />
 
-    <!-- Footer -->
     <footer class="page-footer">
-      © BookmarkIt - Lesezeichen Manager· WebTechnologie Projekt SoSe2026 · HTW Berlin
+      © BookmarkIt - Lesezeichen Manager · WebTechnologie Projekt SoSe2026 · HTW Berlin
     </footer>
 
   </div>
@@ -60,28 +57,25 @@ defineEmits(['toggle-dark'])
 
 const activeFilter = inject('activeFilter', ref('alle'))
 
-const filterTitle = computed(() => {
-  const titles = {
-    alle:      'Alle Lesezeichen',
-    ungelesen: 'Ungelesen',
-    favoriten: 'Favoriten',
-    gelesen:   'Gelesen',
-    tags:      'Tags / Kategorien'
-  }
-  return titles[activeFilter.value] ?? 'Alle Lesezeichen'
-})
+
+const filterTitle = computed(() => ({
+  alle:      'Alle Lesezeichen',
+  ungelesen: 'Ungelesen',
+  favoriten: 'Favoriten',
+  gelesen:   'Gelesen',
+  tags:      'Tags / Kategorien'
+}[activeFilter.value] ?? 'Alle Lesezeichen'))
 
 const dropdownOpen = ref(false)
-const profileWrap = ref(null)
+const profileWrap  = ref(null)
 
 function toggleDropdown() { dropdownOpen.value = !dropdownOpen.value }
 
 function handleOutsideClick(e) {
-  if (profileWrap.value && !profileWrap.value.contains(e.target)) {
+  if (profileWrap.value && !profileWrap.value.contains(e.target))
     dropdownOpen.value = false
-  }
 }
-onMounted(() => document.addEventListener('click', handleOutsideClick))
+onMounted(()   => document.addEventListener('click', handleOutsideClick))
 onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
 </script>
 
@@ -90,10 +84,9 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0;
+  height: 100vh;
+  overflow: hidden;
 }
-
-/* Topbar */
 .topbar {
   background: var(--topbar);
   border-bottom: 0.5px solid var(--border);
@@ -106,21 +99,8 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   z-index: 20;
   flex-shrink: 0;
 }
-
-/* Titel */
-.topbar-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+.topbar-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
 .toggle-btn {
   display: flex;
   align-items: center;
@@ -132,10 +112,10 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   font-size: 12px;
   color: var(--muted);
   transition: opacity 0.15s;
+  cursor: pointer;
 }
 .toggle-btn i { font-size: 14px; }
 .toggle-btn:hover { opacity: 0.8; }
-
 .profile-wrap { position: relative; }
 .profile-btn {
   width: 36px;
@@ -149,10 +129,10 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   transition: border-color 0.15s;
 }
 .profile-btn:hover { border-color: #a8c8f0; }
-
 .dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -162,12 +142,11 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   border: 0.5px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
   display: none;
   z-index: 100;
 }
 .dropdown.open { display: block; }
-
 .dropdown-header {
   padding: 12px 14px;
   border-bottom: 0.5px solid var(--border);
@@ -176,42 +155,25 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   gap: 10px;
 }
 .dropdown-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #1a6dbf;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: #fff;
-  flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #1a6dbf; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 600;
+  color: #fff; flex-shrink: 0;
 }
-.dropdown-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.dropdown-name  { font-size: 13px; font-weight: 500; color: var(--text); }
 .dropdown-email { font-size: 11px; color: var(--muted); }
-
 .dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  font-size: 13px;
-  color: var(--text);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  transition: background 0.12s;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; font-size: 13px; color: var(--text);
+  background: none; border: none; width: 100%;
+  text-align: left; cursor: pointer; transition: background 0.12s;
 }
 .dropdown-item:hover { background: var(--hover); }
 .dropdown-item i { font-size: 15px; color: var(--muted); }
 .dropdown-divider { height: 0.5px; background: var(--border); }
 .dropdown-item.danger { color: #E24B4A; }
 .dropdown-item.danger i { color: #E24B4A; }
-.dropdown-item.danger:hover { background: rgba(226, 75, 74, 0.08); }
-
-/* Footer */
+.dropdown-item.danger:hover { background: rgba(226,75,74,0.08); }
 .page-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--border);
@@ -222,6 +184,5 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
   background: var(--topbar);
   transition: background 0.2s;
   flex-shrink: 0;
-  letter-spacing: 0.1px;
 }
 </style>

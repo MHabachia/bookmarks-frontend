@@ -84,11 +84,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'save'])
 
-/**
- * Reaktiver Formular-Zustand.
- * tags ist jetzt ein Array — jeder Chip ist ein einzelner String.
- * @type {{ title: string, url: string, description: string, tags: string[] }}
- */
 const form = reactive({
   title:       '',
   url:         '',
@@ -96,21 +91,15 @@ const form = reactive({
   tags:        []
 })
 
-/** Aktuell getippter Tag-Text (noch nicht als Chip hinzugefügt). */
 const tagInput = ref('')
 
-/** Template-Ref auf das Tag-Eingabefeld für programmatischen Fokus. */
 const tagInputRef = ref(null)
 
-/** Fokussiert das Tag-Eingabefeld wenn man auf den Container klickt. */
 function focusTagInput() {
   tagInputRef.value?.focus()
 }
 
-/**
- * Fügt den aktuell getippten Text als neuen Tag-Chip hinzu.
- * Trimmt Leerzeichen, verhindert leere oder doppelte Tags.
- */
+
 function addTag() {
   const val = tagInput.value.trim().replace(/,$/, '')
   if (val && !form.tags.includes(val)) {
@@ -119,27 +108,19 @@ function addTag() {
   tagInput.value = ''
 }
 
-/**
- * Entfernt einen Tag-Chip per Index.
- * @param {number} index - Index des zu entfernenden Tags
- */
+
 function removeTag(index) {
   form.tags.splice(index, 1)
 }
 
-/**
- * Entfernt den letzten Tag-Chip per Backspace,
- * aber nur wenn das Eingabefeld leer ist.
- */
+
 function removeLastTag() {
   if (tagInput.value === '' && form.tags.length > 0) {
     form.tags.pop()
   }
 }
 
-/**
- * Befüllt das Formular im Edit-Modus mit bestehenden Werten.
- */
+
 watch(() => props.bookmark, (b) => {
   if (b) {
     form.title       = b.title ?? ''
@@ -149,10 +130,7 @@ watch(() => props.bookmark, (b) => {
   }
 }, { immediate: true })
 
-/**
- * Validiert und sendet die Formulardaten.
- * Fügt noch nicht bestätigte Tag-Eingabe automatisch hinzu.
- */
+
 function save() {
   if (!form.title || !form.url) return
   // Falls noch Text im Tag-Feld steht der nicht per Enter bestätigt wurde
