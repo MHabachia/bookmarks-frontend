@@ -105,8 +105,9 @@
             <div class="avatar">IH</div>
             <div>
               <p>Ibrahim Hassan</p>
-              <a href="https://github.com/MHabachia" target="_blank">
+              <a href="https://github.com/Hassan9977" target="_blank">
                 <i class="ti ti-brand-github"></i> @Hassan9977
+              </a>
             </div>
           </div>
         </div>
@@ -132,7 +133,7 @@
  *
  * @component AboutView
  * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.2
+ * @version 1.3
  * @since SoSe 2026
  */
 </script>
