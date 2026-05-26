@@ -19,7 +19,7 @@
     <div v-if="!loading" class="bookmark-grid">
       <BookmarkItem
         v-for="bookmark in filteredBookmarks"
-        :key="bookmark.id"
+        :key="bookmark.id + '-' + bookmark.favorit + '-' + bookmark.gelesen"
         :bookmark="bookmark"
         @edit="openEdit"
         @delete="deleteBookmark"
@@ -51,6 +51,8 @@
  * - Fällt bei nicht erreichbarem Backend auf Mock-Daten zurück
  * - Filtert Bookmarks je nach aktivem Filter aus AppSidebar
  * - Verwaltet den Modal-Zustand für Add- und Edit-Aktionen
+ * - Delegiert Hinzufügen, Bearbeiten und Löschen lokal
+ *   (ab M4: API-Calls für POST/PUT/DELETE)
  *
  * Datenfluss:
  * - bookmarks und activeFilter per inject() von App.vue
@@ -59,7 +61,7 @@
  *
  * @component BookmarkList
  * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.3
+ * @version 1.0
  * @since SoSe 2026
  */
 import { ref, inject, computed, onMounted } from 'vue'
@@ -116,35 +118,76 @@ function closeModal() { modalOpen.value = false; editingBookmark.value = null }
  *
  * Im Edit-Modus: ersetzt das bestehende Bookmark in der Liste.
  * Im Add-Modus: fügt ein neues Bookmark mit temporärer ID hinzu.
+ * Ab M4 werden hier POST/PUT API-Calls eingebaut.
  *
  * @param {Object} data - Die Formulardaten aus BookmarkModal
  */
-function saveBookmark(data) {
-  if (editingBookmark.value) {
-    const idx = bookmarks.value.findIndex(b => b.id === data.id)
-    if (idx !== -1) bookmarks.value[idx] = data
-  } else {
-    bookmarks.value.push({ ...data, id: Date.now() })
+async function saveBookmark(data) {
+  try {
+    if (editingBookmark.value) {
+      // PUT — Bookmark aktualisieren
+      // editingBookmark.value.id verwenden falls data.id fehlt
+      const id = data.id ?? editingBookmark.value.id
+      const response = await fetch('/api/bookmarks/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, id })
+      })
+      if (!response.ok) throw new Error('Fehler beim Aktualisieren')
+      const updated = await response.json()
+      const idx = bookmarks.value.findIndex(b => b.id === updated.id)
+      if (idx !== -1) bookmarks.value.splice(idx, 1, updated)
+    } else {
+      // POST — neues Bookmark erstellen
+      const response = await fetch('/api/bookmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      if (!response.ok) throw new Error('Fehler beim Erstellen')
+      const created = await response.json()
+      bookmarks.value.push(created)
+    }
+    closeModal()
+  } catch (e) {
+    console.error('saveBookmark Fehler:', e)
   }
-  closeModal()
 }
 
 /**
- * Löscht ein Bookmark aus der lokalen Liste.
- *
+ * Löscht ein Bookmark per DELETE API-Call.
  * @param {Object} b - Das zu löschende Bookmark-Objekt
  */
-function deleteBookmark(b) {
-  bookmarks.value = bookmarks.value.filter(x => x.id !== b.id)
+async function deleteBookmark(b) {
+  try {
+    const response = await fetch('/api/bookmarks/' + b.id, {
+      method: 'DELETE'
+    })
+    if (!response.ok) throw new Error('Fehler beim Löschen')
+    bookmarks.value = bookmarks.value.filter(x => x.id !== b.id)
+  } catch (e) {
+    console.error('deleteBookmark Fehler:', e)
+  }
 }
 
 /**
- * Aktualisiert ein Bookmark in der Liste (für Favorit/Gelesen Toggle).
+ * Aktualisiert Favorit/Gelesen Status per PUT API-Call.
  * @param {Object} updated - Das aktualisierte Bookmark-Objekt
  */
-function toggleBookmark(updated) {
-  const idx = bookmarks.value.findIndex(b => b.id === updated.id)
-  if (idx !== -1) bookmarks.value[idx] = updated
+async function toggleBookmark(updated) {
+  try {
+    const response = await fetch('/api/bookmarks/' + updated.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    })
+    if (!response.ok) throw new Error('Fehler beim Aktualisieren')
+    const result = await response.json()
+    const idx = bookmarks.value.findIndex(b => b.id === result.id)
+    if (idx !== -1) bookmarks.value.splice(idx, 1, result)
+  } catch (e) {
+    console.error('toggleBookmark Fehler:', e)
+  }
 }
 
 /**
@@ -188,9 +231,9 @@ const filteredBookmarks = computed(() => {
  */
 const mockData = [
   { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',         description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium', 'HTW']       },
-  { id: 2, title: 'Youtube DE', url: 'https://www.youtube.de', description: 'Deutschland Youtube Streaming Platform',         tags: ['media', 'stream']      },
+  { id: 2, title: 'Spring Boot Docs', url: 'https://docs.spring.io/spring-boot', description: 'Offizielle Spring Boot Dokumentation',         tags: ['Backend', 'Java']      },
   { id: 3, title: 'Vue.js Docs',      url: 'https://vuejs.org',                 description: 'Offizielle Vue.js 3 Dokumentation',            tags: ['Frontend', 'Vue']      },
-  { id: 4, title: 'Facebook DE',     url: 'https://wwww.facebook.de',     description: 'Meta Facebook ',         tags: ['Socialmedia'] }
+  { id: 4, title: 'MDN Web Docs',     url: 'https://developer.mozilla.org',     description: 'Web-Entwicklungs-Referenz von Mozilla',         tags: ['Referenz', 'Frontend'] }
 ]
 
 /**

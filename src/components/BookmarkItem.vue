@@ -21,21 +21,21 @@
           <!-- Favorit-Button -->
           <button
             class="action-btn"
-            :class="{ active: bookmark.favorit }"
+            :class="{ active: isFavorit }"
             @click="toggleFavorit"
-            :title="bookmark.favorit ? 'Aus Favoriten entfernen' : 'Als Favorit markieren'"
+            :title="isFavorit ? 'Aus Favoriten entfernen' : 'Als Favorit markieren'"
           >
-            <i :class="bookmark.favorit ? 'ti ti-star-filled' : 'ti ti-star'"></i>
+            <i :class="isFavorit ? 'ti ti-star-filled' : 'ti ti-star'"></i>
           </button>
 
           <!-- Gelesen-Button -->
           <button
             class="action-btn"
-            :class="{ active: bookmark.gelesen }"
+            :class="{ active: isGelesen }"
             @click="toggleGelesen"
-            :title="bookmark.gelesen ? 'Als ungelesen markieren' : 'Als gelesen markieren'"
+            :title="isGelesen ? 'Als ungelesen markieren' : 'Als gelesen markieren'"
           >
-            <i :class="bookmark.gelesen ? 'ti ti-circle-check-filled' : 'ti ti-circle-check'"></i>
+            <i :class="isGelesen ? 'ti ti-circle-check-filled' : 'ti ti-circle-check'"></i>
           </button>
 
           <!-- Dreipunkt-Menü -->
@@ -95,13 +95,28 @@
  * @emits {Object} edit - Das zu bearbeitende Bookmark-Objekt
  * @emits {Object} delete - Das zu löschende Bookmark-Objekt
  * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.3
+ * @version 1.0
  * @since SoSe 2026
  */
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({ bookmark: { type: Object, required: true } })
 const emit = defineEmits(['edit', 'delete', 'toggle-favorit', 'toggle-gelesen'])
+
+// Lokale reaktive Kopien für sofortiges UI-Feedback
+// (wird aktualisiert wenn props.bookmark sich ändert)
+const isFavorit = ref(props.bookmark.favorit ?? false)
+const isGelesen = ref(props.bookmark.gelesen ?? false)
+
+// Synchronisiert lokale Werte wenn das Bookmark von außen aktualisiert wird
+// watch auf einzelne Felder — zuverlässiger als deep watch auf ganzes Objekt
+watch(() => props.bookmark.favorit, (val) => {
+  isFavorit.value = val ?? false
+})
+
+watch(() => props.bookmark.gelesen, (val) => {
+  isGelesen.value = val ?? false
+})
 
 /** Template-Ref auf das Favicon-Bild Element. @type {import('vue').Ref} */
 const faviconImg = ref(null)
@@ -159,14 +174,35 @@ function onDelete() { menuOpen.value = false; emit('delete', props.bookmark) }
  * Schaltet den Favorit-Status um und emittiert das Event nach oben.
  */
 function toggleFavorit() {
-  emit('toggle-favorit', { ...props.bookmark, favorit: !props.bookmark.favorit })
+  const newVal = !isFavorit.value
+  isFavorit.value = newVal
+  // Spread mit expliziten Werten damit keine undefined entstehen
+  emit('toggle-favorit', {
+    id:          props.bookmark.id,
+    title:       props.bookmark.title,
+    url:         props.bookmark.url,
+    description: props.bookmark.description,
+    tags:        props.bookmark.tags ?? [],
+    favorit:     newVal,
+    gelesen:     isGelesen.value
+  })
 }
 
 /**
  * Schaltet den Gelesen-Status um und emittiert das Event nach oben.
  */
 function toggleGelesen() {
-  emit('toggle-gelesen', { ...props.bookmark, gelesen: !props.bookmark.gelesen })
+  const newVal = !isGelesen.value
+  isGelesen.value = newVal
+  emit('toggle-gelesen', {
+    id:          props.bookmark.id,
+    title:       props.bookmark.title,
+    url:         props.bookmark.url,
+    description: props.bookmark.description,
+    tags:        props.bookmark.tags ?? [],
+    favorit:     isFavorit.value,
+    gelesen:     newVal
+  })
 }
 
 /**
@@ -213,6 +249,7 @@ onUnmounted(() => document.removeEventListener('click', handleOutside))
   gap: 2px;
   flex-shrink: 0;
 }
+.menu-wrap { position: relative; }
 .action-btn {
   background: none;
   border: none;
