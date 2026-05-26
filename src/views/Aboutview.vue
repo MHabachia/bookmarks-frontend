@@ -105,7 +105,8 @@
             <div class="avatar">IH</div>
             <div>
               <p>Ibrahim Hassan</p>
-              <span class="muted">HTW Berlin</span>
+              <a href="https://github.com/MHabachia" target="_blank">
+                <i class="ti ti-brand-github"></i> @Hassan9977
             </div>
           </div>
         </div>
@@ -131,7 +132,7 @@
  *
  * @component AboutView
  * @author Mohamad Habachia, Ibrahim Hassan
- * @version 1.0
+ * @version 1.2
  * @since SoSe 2026
  */
 </script>
