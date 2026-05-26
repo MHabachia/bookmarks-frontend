@@ -30,10 +30,10 @@
           Backend
         </a>
       </div>
-      <a href="#" class="footer-item">
+      <RouterLink to="/about" class="footer-item">
         <i class="ti ti-file-description"></i>
         Dokumentation
-      </a>
+      </RouterLink>
       <button class="footer-item danger">
         <i class="ti ti-logout"></i>
         Abmelden
@@ -47,7 +47,7 @@
 
 <script setup>
 /**
- *  Seitenleiste der BookmarkIt-Anwendung.
+ * @fileoverview Seitenleiste der BookmarkIt-Anwendung.
  *
  * Zeigt die Navigation mit Filter-Optionen sowie den Footer-Bereich
  * mit GitHub-Repos, Dokumentation und Abmelden-Button.
@@ -57,8 +57,14 @@
  * - navItems berechnet die Badge-Zahlen reaktiv aus bookmarks
  * - Bei Nav-Klick wird 'set-filter' nach oben an App.vue emittiert
  *
+ * @component AppSidebar
+ * @emits {string} set-filter - Der gewählte Filter-Wert
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 1.3
+ * @since SoSe 2026
  */
 import { inject, computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 defineEmits(['set-filter'])
 

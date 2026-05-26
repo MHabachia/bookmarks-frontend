@@ -1,5 +1,5 @@
 /**
- * Einstiegspunkt der BookmarkIt Vue.js-Anwendung.
+ * @fileoverview Einstiegspunkt der BookmarkIt Vue.js-Anwendung.
  *
  * Initialisiert die Vue-App, konfiguriert Vue Router und
  * hängt die Anwendung in den DOM-Einstiegspunkt (#app) ein.
@@ -9,12 +9,18 @@
  * 2. Vue-App wird mit App.vue als Wurzelkomponente erstellt
  * 3. Router wird registriert
  * 4. App wird in <div id="app"> (index.html) eingehängt
+ *
+ * @module main
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 1.3
+ * @since SoSe 2026
  */
 
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import HomeView from './views/HomeView.vue'
+import AboutView from './views/AboutView.vue'
 import './assets/main.css'
 
 /**
@@ -29,7 +35,8 @@ import './assets/main.css'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: HomeView }
+    { path: '/',      component: HomeView  },
+    { path: '/about', component: AboutView }
   ]
 })
 
