@@ -17,15 +17,12 @@
             <div class="dropdown-header">
               <div class="dropdown-avatar">MH</div>
               <div>
-                <p class="dropdown-name">Mo Hamad</p>
-                <span class="dropdown-email">mo@htw-berlin.de</span>
+                <p class="dropdown-name">Mohamad</p>
+                <span class="dropdown-email">mo@bookmarkIt.de</span>
               </div>
             </div>
             <button class="dropdown-item">
               <i class="ti ti-settings"></i>Profileinstellungen
-            </button>
-            <button class="dropdown-item">
-              <i class="ti ti-photo"></i>Bild hinzufügen
             </button>
             <button class="dropdown-item">
               <i class="ti ti-lock"></i>Passwort ändern
