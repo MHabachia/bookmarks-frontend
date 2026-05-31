@@ -1,9 +1,9 @@
 <template>
   <aside class="sidebar">
-    <div class="sidebar-logo">
+    <RouterLink to="/" class="sidebar-logo">
       <i class="ti ti-bookmark"></i>
       <span>BookmarkIt</span>
-    </div>
+    </RouterLink>
 
     <nav class="sidebar-nav">
       <button
@@ -11,7 +11,7 @@
         :key="item.filter"
         class="nav-item"
         :class="{ active: activeFilter === item.filter }"
-        @click="$emit('set-filter', item.filter)"
+        @click="$emit('set-filter', item.filter); router.push('/')"
       >
         <i :class="`ti ti-${item.icon}`"></i>
         {{ item.label }}
@@ -48,8 +48,9 @@
 <script setup>
 
 import { inject, computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
+const router = useRouter()
 defineEmits(['set-filter'])
 
 /** @type {import('vue').Ref<Array>} */
@@ -114,6 +115,8 @@ const navItems = computed(() => [
   align-items: center;
   gap: 10px;
   border-bottom: 0.5px solid var(--sidebar-border);
+  text-decoration: none;
+  cursor: pointer;
 }
 .sidebar-logo i { font-size: 22px; color: var(--sidebar-muted); }
 .sidebar-logo span { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.2px; }
