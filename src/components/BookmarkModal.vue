@@ -56,7 +56,7 @@
               @keydown.backspace="removeLastTag"
             />
           </div>
-          <span class="field-hint">Enter oder Komma drücken um einen Tag hinzuzufügen</span>
+          <span class="field-hint">Enter drücken um einen Tag hinzuzufügen</span>
         </div>
 
       </div>
