@@ -99,7 +99,8 @@
 import { ref, reactive, inject, computed, onMounted } from 'vue'
 import BookmarkItem from './BookmarkItem.vue'
 import BookmarkModal from './BookmarkModal.vue'
-
+const API_URL = import.meta.env.VITE_API_URL || ''
+  
 const bookmarks = inject('bookmarks')
 
 const activeFilter = inject('activeFilter')
@@ -130,7 +131,7 @@ async function saveBookmark(data) {
     if (editingBookmark.value) {
       // PUT — Bookmark aktualisieren
       const id = data.id ?? editingBookmark.value.id
-      const response = await fetch('/api/bookmarks/' + id, {
+      const response = await fetch(`${API_URL}/api/bookmarks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, id })
@@ -142,7 +143,7 @@ async function saveBookmark(data) {
       showToast('Bookmark wurde aktualisiert ✏️')
     } else {
       // POST — neues Bookmark erstellen
-      const response = await fetch('/api/bookmarks', {
+      const response = await fetch(`${API_URL}/api/bookmarks/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -168,7 +169,7 @@ async function confirmDelete() {
   const b = deleteConfirm.bookmark
   deleteConfirm.open = false
   try {
-    const response = await fetch('/api/bookmarks/' + b.id, { method: 'DELETE' })
+    const response = await fetch(`${API_URL}/api/bookmarks/${b.id}`, { method: 'DELETE' })
     if (!response.ok) throw new Error('Fehler beim Löschen')
     bookmarks.value = bookmarks.value.filter(x => x.id !== b.id)
     showToast('Bookmark wurde gelöscht 🗑️', 'info')
@@ -184,7 +185,7 @@ async function toggleBookmark(updated) {
     const favoritGeandert = original?.favorit !== updated.favorit
     const gelesenGeandert = original?.gelesen !== updated.gelesen
 
-    const response = await fetch('/api/bookmarks/' + updated.id, {
+    const response = await fetch(`${API_URL}/api/bookmarks/${updated.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated)
@@ -251,7 +252,7 @@ const mockData = [
 
 onMounted(async () => {
   try {
-    const response = await fetch('/api/bookmarks')
+    const response = await fetch(`${API_URL}/api/bookmarks`)
     if (!response.ok) throw new Error('HTTP Fehler: ' + response.status)
     bookmarks.value = await response.json()
   } catch {
