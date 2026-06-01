@@ -7,7 +7,7 @@ export default defineConfig({
     proxy: {
       // Im Dev-Modus: Anfragen an /api werden ans Backend weitergeleitet
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://bookmarks-backend-w11a.onrender.com',
         changeOrigin: true,
       }
     }
