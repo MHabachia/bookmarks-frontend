@@ -143,7 +143,7 @@ async function saveBookmark(data) {
       showToast('Bookmark wurde aktualisiert ✏️')
     } else {
       // POST — neues Bookmark erstellen
-      const response = await fetch(`${API_URL}/api/bookmarks/${id}`, {
+      const response = await fetch(`${API_URL}/api/bookmarks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
