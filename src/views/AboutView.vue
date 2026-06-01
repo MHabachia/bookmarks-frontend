@@ -81,14 +81,54 @@
         </div>
 
         <div class="info-block">
-          <h3><i class="ti ti-server-2"></i> Deployment</h3>
+          <h3><i class="ti ti-cloud"></i> Deployment</h3>
           <ul>
-            <li>Ubuntu 24.04 System</li>
-            <li>Nginx für API Reverse Proxy</li>
-            <li>Reverse Proxy für SSL-Termination </li>
-            <li>systemd Service</li>
+            <li>Render Static Site für das Frontend</li>
+            <li>Render Web Service für das Backend</li>
+            <li>Docker Deployment für Spring Boot</li>
+            <li>Render PostgreSQL Datenbank</li>
           </ul>
         </div>
+      </div>
+
+      <!-- Deployment -->
+      <div class="deployment-section">
+        <h3><i class="ti ti-cloud-upload"></i> Deployment auf Render</h3>
+
+        <p>
+          Die Anwendung wurde mit Render deployed. Dabei sind Frontend, Backend und Datenbank
+          als getrennte Services eingerichtet. Das Frontend läuft als Static Site, das Backend
+          als Docker-basierter Web Service und die Datenbank als PostgreSQL-Service.
+        </p>
+
+        <div class="deployment-grid">
+          <div class="deployment-item">
+            <strong>Frontend</strong>
+            <span>Vue/Vite Static Site</span>
+            <code>npm install && npm run build</code>
+            <small>Publish Directory: dist</small>
+          </div>
+
+          <div class="deployment-item">
+            <strong>Backend</strong>
+            <span>Spring Boot Web Service</span>
+            <code>Dockerfile</code>
+            <small>Port über PORT=10000</small>
+          </div>
+
+          <div class="deployment-item">
+            <strong>Datenbank</strong>
+            <span>Render PostgreSQL</span>
+            <code>SPRING_DATASOURCE_*</code>
+            <small>Zugangsdaten über Environment Variables</small>
+          </div>
+        </div>
+
+        <p>
+          Das Frontend greift über die Environment Variable <code>VITE_API_URL</code>
+          auf die öffentliche Backend-URL von Render zu. Dadurch wird im produktiven Betrieb
+          nicht mehr <code>localhost</code>, sondern das online deployte Backend verwendet.
+        </p>
       </div>
 
       <!-- API -->
@@ -190,7 +230,6 @@
         </div>
       </div>
 
-
     </div>
   </section>
 </template>
@@ -205,6 +244,7 @@
   flex: 1;
   overflow-y: auto;
 }
+
 .about-card {
   max-width: 760px;
   margin: 0 auto;
@@ -221,8 +261,18 @@
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
 }
-.about-header i { font-size: 32px; color: var(--accent); }
-.about-header h1 { font-size: 26px; font-weight: 700; color: var(--text); }
+
+.about-header i {
+  font-size: 32px;
+  color: var(--accent);
+}
+
+.about-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .version-badge {
   margin-left: auto;
   background: var(--tag-bg);
@@ -232,7 +282,12 @@
   border-radius: 99px;
   padding: 4px 12px;
 }
-.about-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+.about-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
 
 /* Features */
 .features-section {
@@ -241,6 +296,7 @@
   border-radius: 12px;
   padding: 18px;
 }
+
 .features-section h3 {
   display: flex;
   align-items: center;
@@ -250,12 +306,18 @@
   color: var(--text);
   margin-bottom: 14px;
 }
-.features-section h3 i { color: var(--accent); font-size: 16px; }
+
+.features-section h3 i {
+  color: var(--accent);
+  font-size: 16px;
+}
+
 .features-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
+
 .feature-item {
   display: flex;
   align-items: center;
@@ -263,7 +325,12 @@
   font-size: 13px;
   color: var(--muted);
 }
-.feature-item i { font-size: 15px; color: var(--accent); flex-shrink: 0; }
+
+.feature-item i {
+  font-size: 15px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
 
 /* Tech Stack */
 .about-grid {
@@ -271,12 +338,14 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
+
 .info-block {
   background: var(--card);
   border: 0.5px solid var(--border);
   border-radius: 12px;
   padding: 16px;
 }
+
 .info-block h3 {
   display: flex;
   align-items: center;
@@ -286,13 +355,95 @@
   color: var(--text);
   margin-bottom: 10px;
 }
-.info-block h3 i { color: var(--accent); font-size: 16px; }
-.info-block ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+
+.info-block h3 i {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.info-block ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .info-block li {
   font-size: 13px;
   color: var(--muted);
   padding-left: 8px;
   border-left: 2px solid var(--accent);
+}
+
+/* Deployment */
+.deployment-section {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.deployment-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.deployment-section h3 i {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.deployment-section p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.deployment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.deployment-item {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deployment-item strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.deployment-item span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.deployment-item code {
+  font-size: 11px;
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: var(--accent);
+}
+
+.deployment-item small {
+  font-size: 11px;
+  color: var(--muted);
 }
 
 /* API */
@@ -302,6 +453,7 @@
   border-radius: 12px;
   padding: 18px;
 }
+
 .api-section h3 {
   display: flex;
   align-items: center;
@@ -311,14 +463,25 @@
   color: var(--text);
   margin-bottom: 14px;
 }
-.api-section h3 i { color: var(--accent); font-size: 16px; }
-.api-list { display: flex; flex-direction: column; gap: 8px; }
+
+.api-section h3 i {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.api-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .api-item {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13px;
 }
+
 .method {
   font-size: 10px;
   font-weight: 700;
@@ -328,10 +491,27 @@
   text-align: center;
   flex-shrink: 0;
 }
-.method.get    { background: rgba(34,197,94,0.15);  color: #16a34a; }
-.method.post   { background: rgba(59,130,246,0.15); color: #2563eb; }
-.method.put    { background: rgba(234,179,8,0.15);  color: #ca8a04; }
-.method.delete { background: rgba(239,68,68,0.15);  color: #dc2626; }
+
+.method.get {
+  background: rgba(34,197,94,0.15);
+  color: #16a34a;
+}
+
+.method.post {
+  background: rgba(59,130,246,0.15);
+  color: #2563eb;
+}
+
+.method.put {
+  background: rgba(234,179,8,0.15);
+  color: #ca8a04;
+}
+
+.method.delete {
+  background: rgba(239,68,68,0.15);
+  color: #dc2626;
+}
+
 .api-item code {
   font-size: 12px;
   background: var(--bg);
@@ -341,7 +521,11 @@
   color: var(--accent);
   min-width: 200px;
 }
-.api-desc { font-size: 12px; color: var(--muted); }
+
+.api-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
 
 /* Milestones */
 .milestones {
@@ -350,6 +534,7 @@
   border-radius: 12px;
   padding: 18px;
 }
+
 .milestones h3 {
   display: flex;
   align-items: center;
@@ -359,16 +544,59 @@
   color: var(--text);
   margin-bottom: 14px;
 }
-.milestones h3 i { color: var(--accent); font-size: 16px; }
-.milestone-list { display: flex; flex-direction: column; gap: 10px; }
-.milestone { display: flex; align-items: center; gap: 12px; font-size: 13px; }
-.milestone i { font-size: 18px; flex-shrink: 0; }
-.milestone.done i { color: var(--accent); }
-.milestone.pending i { color: var(--muted); }
-.milestone div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.milestone strong { color: var(--text); }
-.milestone.pending strong { color: var(--muted); }
-.date { margin-left: auto; font-size: 11px; color: var(--muted); opacity: 0.7; }
+
+.milestones h3 i {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.milestone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.milestone i {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.milestone.done i {
+  color: var(--accent);
+}
+
+.milestone.pending i {
+  color: var(--muted);
+}
+
+.milestone div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.milestone strong {
+  color: var(--text);
+}
+
+.milestone.pending strong {
+  color: var(--muted);
+}
+
+.date {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.7;
+}
 
 /* Team */
 .team-section {
@@ -377,6 +605,7 @@
   border-radius: 12px;
   padding: 18px;
 }
+
 .team-section h3 {
   display: flex;
   align-items: center;
@@ -386,31 +615,84 @@
   color: var(--text);
   margin-bottom: 14px;
 }
-.team-section h3 i { color: var(--accent); font-size: 16px; }
-.team-list { display: flex; gap: 20px; flex-wrap: wrap; }
-.team-member { display: flex; align-items: center; gap: 12px; }
+
+.team-section h3 i {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.team-list {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.team-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
-.team-member p { font-size: 13px; font-weight: 500; color: var(--text); }
+
+.team-member p {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
 .team-member a {
-  font-size: 12px; color: var(--accent); text-decoration: none;
-  display: flex; align-items: center; gap: 4px;
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.team-member a:hover { text-decoration: underline; }
+
+.team-member a:hover {
+  text-decoration: underline;
+}
 
 /* Repo Links */
-.repo-links { display: flex; gap: 12px; }
-.repo-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 8px; padding: 9px 16px;
-  font-size: 13px; font-weight: 500; color: var(--text);
-  text-decoration: none; transition: background 0.15s, border-color 0.15s;
+.repo-links {
+  display: flex;
+  gap: 12px;
 }
-.repo-btn:hover { border-color: var(--accent); color: var(--accent); }
-.repo-btn i { font-size: 16px; }
+
+.repo-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.repo-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.repo-btn i {
+  font-size: 16px;
+}
 </style>
