@@ -213,42 +213,21 @@ cd bookmarks-frontend
 npm install
 npm run dev
 ```
+---
 
-Das Frontend ist dann erreichbar unter:
+## Deployment
+Das Frontend wird auf **Render** als Static Site deployed.
+
+### Architektur
+
 ```
-http://localhost:5173
+Internet → Render CDN (SSL) → Static Files (dist/)
+Frontend kommuniziert mit Backend via VITE_API_URL Umgebungsvariable
 ```
 
 > **Hinweis:** Vite leitet `/api`-Anfragen automatisch an
 > `http://localhost:8080` weiter (Proxy in `vite.config.js`).
 > Ohne laufendes Backend werden automatisch Mock-Daten geladen.
-
-
-
----
-
-## Deployment
-
-Das Frontend wird als statische Dateien via Nginx ausgeliefert,
-auf demselben Server wie das Backend (Virtuelle Maschine, Ubuntu 24.04).
-
-### Architektur
-
-```
-Internet → Reverse-Proxy (SSL) → Nginx (Port 80)
-                               ├── /      → dist/ (statische Dateien)
-                               └── /api   → Spring Boot (Port 8080)
-```
-
-### Deploy-Befehl
-
-```bash
-cd /opt/bookmarkit/bookmarks-frontend
-git pull
-npm install
-npm run build
-cp -r dist/* /var/www/bookmarkit/
-```
 
 ---
 
