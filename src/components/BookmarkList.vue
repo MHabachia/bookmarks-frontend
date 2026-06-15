@@ -17,7 +17,7 @@
       <i class="ti ti-alert-triangle"></i> {{ error }}
     </p>
 
-    <!-- Normal-Ansicht: flache Grid-Liste -->
+    <!-- Normal-Ansicht -->
     <div v-if="!loading && !isTagsView" class="bookmark-grid">
       <BookmarkItem
         v-for="bookmark in filteredBookmarks"
@@ -30,13 +30,9 @@
       />
     </div>
 
-    <!-- Tag-Ansicht: nach Tag gruppiert -->
+    <!-- Tag-Ansicht -->
     <div v-if="!loading && isTagsView" class="tag-groups">
-      <div
-        v-for="group in tagGroups"
-        :key="group.tag"
-        class="tag-group"
-      >
+      <div v-for="group in tagGroups" :key="group.tag" class="tag-group">
         <div class="tag-group-header">
           <i class="ti ti-tag"></i>
           <span class="tag-group-name">{{ group.tag }}</span>
@@ -54,31 +50,23 @@
           />
         </div>
       </div>
-
-      <div v-if="tagGroups.length === 0" class="status">
-        Keine Tags vorhanden.
-      </div>
+      <div v-if="tagGroups.length === 0" class="status">Keine Tags vorhanden.</div>
     </div>
 
     <p v-if="!loading && !isTagsView && filteredBookmarks.length === 0" class="status">
       Es sind keine Lesezeichen in dieser Ansicht vorhanden.
     </p>
 
-    <!-- Bestätigungs-Dialog beim Löschen -->
+    <!-- Lösch-Dialog -->
     <div v-if="deleteConfirm.open" class="confirm-overlay" @click.self="deleteConfirm.open = false">
       <div class="confirm-dialog">
-        <div class="confirm-icon">
-          <i class="ti ti-trash"></i>
-        </div>
+        <div class="confirm-icon"><i class="ti ti-trash"></i></div>
         <h3>Bookmark löschen?</h3>
         <p>„{{ deleteConfirm.bookmark?.title }}" wird unwiderruflich gelöscht.</p>
         <div class="confirm-actions">
-          <button class="confirm-cancel" @click="deleteConfirm.open = false">
-            Abbrechen
-          </button>
+          <button class="confirm-cancel" @click="deleteConfirm.open = false">Abbrechen</button>
           <button class="confirm-delete" @click="confirmDelete">
-            <i class="ti ti-trash"></i>
-            Löschen
+            <i class="ti ti-trash"></i>Löschen
           </button>
         </div>
       </div>
@@ -95,45 +83,36 @@
 </template>
 
 <script setup>
-
 import { ref, reactive, inject, computed, onMounted } from 'vue'
 import BookmarkItem from './BookmarkItem.vue'
 import BookmarkModal from './BookmarkModal.vue'
-const API_URL = import.meta.env.VITE_API_URL || ''
-  
-const bookmarks = inject('bookmarks')
+import { useAuth } from '../composables/useAuth'
 
+// authFetch statt fetch — setzt automatisch JWT-Bearer-Token
+const { authFetch } = useAuth()
+const API_URL = import.meta.env.VITE_API_URL || ''
+
+const bookmarks    = inject('bookmarks')
 const activeFilter = inject('activeFilter')
 const showToast    = inject('showToast')
 
 const isTagsView = computed(() => activeFilter.value === 'tags')
-
-const loading = ref(true)
-const error = ref(null)
-
-const modalOpen = ref(false)
-
-
-const deleteConfirm = reactive({ open: false, bookmark: null })
-
-
+const loading    = ref(true)
+const error      = ref(null)
+const modalOpen  = ref(false)
+const deleteConfirm  = reactive({ open: false, bookmark: null })
 const editingBookmark = ref(null)
 
-function openAdd() { editingBookmark.value = null; modalOpen.value = true }
-
-
-function openEdit(b) { editingBookmark.value = b; modalOpen.value = true }
-
+function openAdd()  { editingBookmark.value = null; modalOpen.value = true }
+function openEdit(b) { editingBookmark.value = b;   modalOpen.value = true }
 function closeModal() { modalOpen.value = false; editingBookmark.value = null }
 
 async function saveBookmark(data) {
   try {
     if (editingBookmark.value) {
-      // PUT — Bookmark aktualisieren
       const id = data.id ?? editingBookmark.value.id
-      const response = await fetch(`${API_URL}/api/bookmarks/${id}`, {
+      const response = await authFetch(`${API_URL}/api/bookmarks/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, id })
       })
       if (!response.ok) throw new Error('Fehler beim Aktualisieren')
@@ -142,10 +121,8 @@ async function saveBookmark(data) {
       if (idx !== -1) bookmarks.value.splice(idx, 1, updated)
       showToast('Bookmark wurde aktualisiert ✏️')
     } else {
-      // POST — neues Bookmark erstellen
-      const response = await fetch(`${API_URL}/api/bookmarks`, {
+      const response = await authFetch(`${API_URL}/api/bookmarks`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
       if (!response.ok) throw new Error('Fehler beim Erstellen')
@@ -169,7 +146,7 @@ async function confirmDelete() {
   const b = deleteConfirm.bookmark
   deleteConfirm.open = false
   try {
-    const response = await fetch(`${API_URL}/api/bookmarks/${b.id}`, { method: 'DELETE' })
+    const response = await authFetch(`${API_URL}/api/bookmarks/${b.id}`, { method: 'DELETE' })
     if (!response.ok) throw new Error('Fehler beim Löschen')
     bookmarks.value = bookmarks.value.filter(x => x.id !== b.id)
     showToast('Bookmark wurde gelöscht 🗑️', 'info')
@@ -183,11 +160,10 @@ async function toggleBookmark(updated) {
   try {
     const original = bookmarks.value.find(b => b.id === updated.id)
     const favoritGeandert = original?.favorit !== updated.favorit
-    const gelesenGeandert = original?.gelesen !== updated.gelesen
+    const gelesenGeandert = original?.gelesen  !== updated.gelesen
 
-    const response = await fetch(`${API_URL}/api/bookmarks/${updated.id}`, {
+    const response = await authFetch(`${API_URL}/api/bookmarks/${updated.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updated)
     })
     if (!response.ok) throw new Error('Fehler beim Aktualisieren')
@@ -205,26 +181,19 @@ async function toggleBookmark(updated) {
   }
 }
 
-
 const filteredBookmarks = computed(() => {
   let all = bookmarks.value ?? []
-
-  // Filter nach Kategorie
   switch (activeFilter.value) {
     case 'ungelesen': all = all.filter(b => !b.gelesen); break
     case 'favoriten': all = all.filter(b => b.favorit);  break
     case 'gelesen':   all = all.filter(b => b.gelesen);  break
-    case 'tags':                                          break
-    default:                                              break
   }
-
   return all
 })
 
 const tagGroups = computed(() => {
   const all = bookmarks.value ?? []
   const map = new Map()
-
   all.forEach(bookmark => {
     const tags = bookmark.tags?.length ? bookmark.tags : ['Ohne Tag']
     tags.forEach(tag => {
@@ -232,8 +201,6 @@ const tagGroups = computed(() => {
       map.get(tag).push(bookmark)
     })
   })
-
-  // Sortiert nach Tag-Name, "Ohne Tag" immer zuletzt
   return [...map.entries()]
     .sort(([a], [b]) => {
       if (a === 'Ohne Tag') return 1
@@ -243,23 +210,14 @@ const tagGroups = computed(() => {
     .map(([tag, bookmarks]) => ({ tag, bookmarks }))
 })
 
-const mockData = [
-  { id: 1, title: 'HTW Berlin',       url: 'https://www.htw-berlin.de',         description: 'Hochschule für Technik und Wirtschaft Berlin', tags: ['Studium', 'HTW']       },
-  { id: 2, title: 'Facebook', url: 'https://facebook.com', description: 'Facebook Social media Plattform',         tags: ['Meta', 'Socialmedia']      },
-  { id: 3, title: 'Reddit',      url: 'https://www.reddit.com',                 description: 'Reddit Forum Plattform',            tags: ['Forum', 'Socialmedia']      },
-  { id: 4, title: 'Moodle HTW-Berlin',     url: 'https://moodle.htw-berlin.de',     description: 'Moodle Learning Plattform der HTW-Berlin',         tags: ['Studium', 'HTW'] }
-]
-
 onMounted(async () => {
   try {
-    const response = await fetch(`${API_URL}/api/bookmarks`)
+    const response = await authFetch(`${API_URL}/api/bookmarks`)
     if (!response.ok) throw new Error('HTTP Fehler: ' + response.status)
     bookmarks.value = await response.json()
-  } catch {
-    // Backend nicht erreichbar → Mock-Daten laden + Warnung anzeigen
-    console.warn('Backend nicht erreichbar, lade Mock-Daten.')
-    bookmarks.value = mockData
-    error.value = 'Backend nicht erreichbar — Mock-Daten werden angezeigt.'
+  } catch (e) {
+    console.error('Laden fehlgeschlagen:', e)
+    error.value = 'Bookmarks konnten nicht geladen werden.'
   } finally {
     loading.value = false
   }
@@ -267,33 +225,19 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.bookmark-section {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
+.bookmark-section { padding: 20px; flex: 1; overflow-y: auto; }
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
-.section-header h2 {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text);
-}
+.section-header h2 { font-size: 18px; font-weight: 500; color: var(--text); }
 .add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--btn);
-  color: var(--btn-text);
-  border: none;
-  border-radius: 8px;
-  padding: 7px 13px;
-  font-size: 13px;
-  font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--btn); color: var(--btn-text);
+  border: none; border-radius: 8px; padding: 7px 13px;
+  font-size: 13px; font-weight: 600;
 }
 .add-btn i { font-size: 14px; }
 .add-btn:hover { opacity: 0.9; }
@@ -302,126 +246,54 @@ onMounted(async () => {
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
-/* Bestätigungs-Dialog */
 .confirm-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 300;
+  display: flex; align-items: center; justify-content: center; z-index: 300;
 }
 .confirm-dialog {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 16px;
-  padding: 28px 28px 24px;
-  width: 360px;
-  max-width: 90vw;
+  background: var(--card); border: 0.5px solid var(--border); border-radius: 16px;
+  padding: 28px 28px 24px; width: 360px; max-width: 90vw;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
 }
 .confirm-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  width: 52px; height: 52px; border-radius: 50%;
   background: rgba(226,75,74,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
 }
 .confirm-icon i { font-size: 24px; color: #E24B4A; }
 .confirm-dialog h3 { font-size: 16px; font-weight: 700; color: var(--text); }
 .confirm-dialog p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
-.confirm-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 8px;
-  width: 100%;
-}
+.confirm-actions { display: flex; gap: 10px; margin-top: 8px; width: 100%; }
 .confirm-cancel {
-  flex: 1;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px;
-  font-size: 13px;
-  color: var(--muted);
-  cursor: pointer;
-  font-family: inherit;
+  flex: 1; background: none; border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px; font-size: 13px; color: var(--muted); cursor: pointer;
 }
 .confirm-cancel:hover { background: var(--hover); }
 .confirm-delete {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: #E24B4A;
-  border: none;
-  border-radius: 8px;
-  padding: 9px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  font-family: inherit;
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: #E24B4A; border: none; border-radius: 8px; padding: 9px;
+  font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;
 }
 .confirm-delete:hover { opacity: 0.9; }
-.confirm-delete i { font-size: 14px; }
-
-/* Tag-Gruppen Ansicht */
-.tag-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.tag-group {}
+.tag-groups { display: flex; flex-direction: column; gap: 24px; }
 .tag-group-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
 }
-.tag-group-header i {
-  font-size: 16px;
-  color: var(--accent);
-}
-.tag-group-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-}
+.tag-group-header i { font-size: 16px; color: var(--accent); }
+.tag-group-name { font-size: 15px; font-weight: 700; color: var(--text); }
 .tag-group-count {
-  margin-left: 4px;
-  background: var(--tag-bg);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 99px;
-  padding: 2px 8px;
+  margin-left: 4px; background: var(--tag-bg); color: var(--accent);
+  font-size: 11px; font-weight: 600; border-radius: 99px; padding: 2px 8px;
 }
-
 .status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 1rem;
-  color: var(--muted);
-  font-size: 14px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 1rem; color: var(--muted); font-size: 14px;
 }
 .status.warning {
-  color: #b45309;
-  background: rgba(251, 191, 36, 0.1);
-  border-radius: 8px;
-  margin-bottom: 12px;
+  color: #b45309; background: rgba(251,191,36,0.1);
+  border-radius: 8px; margin-bottom: 12px;
 }
 </style>

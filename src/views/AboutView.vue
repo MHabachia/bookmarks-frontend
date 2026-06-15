@@ -6,15 +6,15 @@
       <div class="about-header">
         <i class="ti ti-bookmark"></i>
         <h1>BookmarkIt</h1>
-        <span class="version-badge">Version 1.4 · M4</span>
+        <span class="version-badge">Version 2.0 · Finale</span>
       </div>
 
       <p class="about-desc">
         BookmarkIt ist eine Webanwendung zur Verwaltung von Lesezeichen.
         Entwickelt im Rahmen des Moduls <strong>Webtechnologien</strong>
         an der HTW Berlin, SoSe 2026. Das Frontend kommuniziert mit einem
-        Spring Boot Backend über eine REST-API und speichert alle Daten
-        in einer PostgreSQL-Datenbank.
+        Spring Boot Backend über eine REST-API, speichert alle Daten in einer
+        PostgreSQL-Datenbank und sichert den Zugriff über <strong>Auth0</strong>.
       </p>
 
       <!-- Features -->
@@ -53,6 +53,22 @@
             <i class="ti ti-world"></i>
             <span>Automatische Favicons</span>
           </div>
+          <div class="feature-item">
+            <i class="ti ti-shield-lock"></i>
+            <span>Auth0 Authentifizierung</span>
+          </div>
+          <div class="feature-item">
+            <i class="ti ti-user-circle"></i>
+            <span>User-Profil mit Statistiken</span>
+          </div>
+          <div class="feature-item">
+            <i class="ti ti-lock"></i>
+            <span>Eigene Bookmarks pro User</span>
+          </div>
+          <div class="feature-item">
+            <i class="ti ti-chart-bar"></i>
+            <span>Lesefortschritt & Top-Tags</span>
+          </div>
         </div>
       </div>
 
@@ -63,6 +79,8 @@
           <ul>
             <li>Java 21</li>
             <li>Spring Boot 4.0</li>
+            <li>Spring Security</li>
+            <li>OAuth2 Resource Server</li>
             <li>Spring Data JPA</li>
             <li>Flyway Migration</li>
             <li>PostgreSQL 16</li>
@@ -76,6 +94,7 @@
             <li>Vue.js 3</li>
             <li>Vite 6</li>
             <li>Vue Router 4</li>
+            <li>Auth0 Vue SDK</li>
             <li>Tabler Icons 3.31</li>
           </ul>
         </div>
@@ -83,24 +102,59 @@
         <div class="info-block">
           <h3><i class="ti ti-cloud"></i> Deployment</h3>
           <ul>
-            <li>Render Static Site für das Frontend</li>
-            <li>Render Web Service für das Backend</li>
-            <li>Docker Deployment für Spring Boot</li>
-            <li>Render PostgreSQL Datenbank</li>
+            <li>Render Static Site (Frontend)</li>
+            <li>Render Web Service (Backend)</li>
+            <li>Docker für Spring Boot</li>
+            <li>Render PostgreSQL</li>
+            <li>Auth0 (Authentifizierung)</li>
           </ul>
         </div>
+      </div>
+
+      <!-- Auth0 -->
+      <div class="auth-section">
+        <h3><i class="ti ti-shield-lock"></i> Authentifizierung mit Auth0</h3>
+        <p>
+          Die Anwendung verwendet <strong>Auth0</strong> als Identitätsprovider.
+          Nach dem Login erhält der Browser ein <strong>JWT-Token</strong>, das bei
+          jedem API-Call im <code>Authorization: Bearer</code> Header mitgeschickt wird.
+          Das Spring Boot Backend validiert das Token automatisch gegen Auth0.
+        </p>
+        <div class="auth-flow">
+          <div class="auth-step">
+            <i class="ti ti-user"></i>
+            <span>Login via Auth0</span>
+          </div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="auth-step">
+            <i class="ti ti-key"></i>
+            <span>JWT Token</span>
+          </div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="auth-step">
+            <i class="ti ti-api"></i>
+            <span>API-Calls mit Bearer</span>
+          </div>
+          <i class="ti ti-arrow-right flow-arrow"></i>
+          <div class="auth-step">
+            <i class="ti ti-shield-check"></i>
+            <span>Backend validiert</span>
+          </div>
+        </div>
+        <p>
+          Jeder Bookmark ist über eine <code>owner_id</code> (Auth0 User-ID) an den
+          eingeloggten User gebunden — andere User können diese Bookmarks nicht sehen.
+        </p>
       </div>
 
       <!-- Deployment -->
       <div class="deployment-section">
         <h3><i class="ti ti-cloud-upload"></i> Deployment auf Render</h3>
-
         <p>
-          Die Anwendung wurde mit Render deployed. Dabei sind Frontend, Backend und Datenbank
-          als getrennte Services eingerichtet. Das Frontend läuft als Static Site, das Backend
-          als Docker-basierter Web Service und die Datenbank als PostgreSQL-Service.
+          Frontend, Backend und Datenbank laufen als drei getrennte Services auf Render.
+          Das Frontend wird als Static Site gebaut und über Render CDN ausgeliefert,
+          das Backend als Docker-basierter Web Service.
         </p>
-
         <div class="deployment-grid">
           <div class="deployment-item">
             <strong>Frontend</strong>
@@ -108,37 +162,38 @@
             <code>npm install && npm run build</code>
             <small>Publish Directory: dist</small>
           </div>
-
           <div class="deployment-item">
             <strong>Backend</strong>
             <span>Spring Boot Web Service</span>
             <code>Dockerfile</code>
             <small>Port über PORT=10000</small>
           </div>
-
           <div class="deployment-item">
             <strong>Datenbank</strong>
             <span>Render PostgreSQL</span>
             <code>SPRING_DATASOURCE_*</code>
-            <small>Zugangsdaten über Environment Variables</small>
+            <small>Zugangsdaten über Env-Variablen</small>
           </div>
         </div>
-
         <p>
-          Das Frontend greift über die Environment Variable <code>VITE_API_URL</code>
-          auf die öffentliche Backend-URL von Render zu. Dadurch wird im produktiven Betrieb
-          nicht mehr <code>localhost</code>, sondern das online deployte Backend verwendet.
+          Auth0-Konfiguration wird über Umgebungsvariablen
+          (<code>AUTH0_ISSUER_URI</code>, <code>VITE_AUTH0_DOMAIN</code>, <code>VITE_AUTH0_CLIENT_ID</code>)
+          sowohl im Frontend als auch im Backend gesetzt.
         </p>
       </div>
 
       <!-- API -->
       <div class="api-section">
         <h3><i class="ti ti-api"></i> REST API</h3>
+        <p class="api-note">
+          <i class="ti ti-lock"></i>
+          Alle Endpunkte erfordern einen gültigen JWT-Token im <code>Authorization</code> Header.
+        </p>
         <div class="api-list">
           <div class="api-item">
             <span class="method get">GET</span>
             <code>/api/bookmarks</code>
-            <span class="api-desc">Alle Bookmarks laden</span>
+            <span class="api-desc">Alle Bookmarks des eingeloggten Users</span>
           </div>
           <div class="api-item">
             <span class="method get">GET</span>
@@ -195,10 +250,10 @@
               <span class="date">14. Juni</span>
             </div>
           </div>
-          <div class="milestone pending">
-            <i class="ti ti-circle"></i>
+          <div class="milestone done">
+            <i class="ti ti-circle-check-filled"></i>
             <div>
-              <strong>Finale</strong> — Tests + GitHub Actions + Dokumentation
+              <strong>Finale</strong> — Auth0, User-Profil, Tests, GitHub Actions, Dokumentation
               <span class="date">5. Juli</span>
             </div>
           </div>
@@ -235,7 +290,6 @@
 </template>
 
 <script setup>
-
 </script>
 
 <style scoped>
@@ -261,18 +315,8 @@
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
 }
-
-.about-header i {
-  font-size: 32px;
-  color: var(--accent);
-}
-
-.about-header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text);
-}
-
+.about-header i    { font-size: 32px; color: var(--accent); }
+.about-header h1   { font-size: 26px; font-weight: 700; color: var(--text); }
 .version-badge {
   margin-left: auto;
   background: var(--tag-bg);
@@ -283,11 +327,7 @@
   padding: 4px 12px;
 }
 
-.about-desc {
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.7;
-}
+.about-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
 
 /* Features */
 .features-section {
@@ -296,403 +336,154 @@
   border-radius: 12px;
   padding: 18px;
 }
-
 .features-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px;
 }
-
-.features-section h3 i {
-  color: var(--accent);
-  font-size: 16px;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.feature-item i {
-  font-size: 15px;
-  color: var(--accent);
-  flex-shrink: 0;
-}
+.features-section h3 i { color: var(--accent); font-size: 16px; }
+.features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.feature-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.feature-item i { font-size: 15px; color: var(--accent); flex-shrink: 0; }
 
 /* Tech Stack */
-.about-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+.about-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.info-block {
+  background: var(--card); border: 0.5px solid var(--border);
+  border-radius: 12px; padding: 16px;
+}
+.info-block h3 {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px;
+}
+.info-block h3 i { color: var(--accent); font-size: 16px; }
+.info-block ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.info-block li {
+  font-size: 13px; color: var(--muted);
+  padding-left: 8px; border-left: 2px solid var(--accent);
 }
 
-.info-block {
+/* Auth0 Section */
+.auth-section {
   background: var(--card);
   border: 0.5px solid var(--border);
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
 }
+.auth-section h3 {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+}
+.auth-section h3 i { color: var(--accent); font-size: 16px; }
+.auth-section p {
+  font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 14px;
+}
+.auth-section p:last-child { margin-bottom: 0; margin-top: 14px; }
 
-.info-block h3 {
+.auth-flow {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0;
 }
-
-.info-block h3 i {
-  color: var(--accent);
-  font-size: 16px;
-}
-
-.info-block ul {
-  list-style: none;
+.auth-step {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
 }
-
-.info-block li {
-  font-size: 13px;
-  color: var(--muted);
-  padding-left: 8px;
-  border-left: 2px solid var(--accent);
-}
+.auth-step i { font-size: 14px; color: var(--accent); }
+.flow-arrow  { font-size: 14px; color: var(--muted); flex-shrink: 0; }
 
 /* Deployment */
 .deployment-section {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
+  background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px;
 }
-
 .deployment-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px;
 }
-
-.deployment-section h3 i {
-  color: var(--accent);
-  font-size: 16px;
-}
-
-.deployment-section p {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.7;
-  margin-bottom: 14px;
-}
-
-.deployment-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 14px 0;
-}
-
+.deployment-section h3 i { color: var(--accent); font-size: 16px; }
+.deployment-section p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+.deployment-section p:last-child { margin-bottom: 0; margin-top: 14px; }
+.deployment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
 .deployment-item {
-  background: var(--bg);
-  border: 0.5px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px;
+  padding: 12px; display: flex; flex-direction: column; gap: 6px;
 }
-
-.deployment-item strong {
-  font-size: 13px;
-  color: var(--text);
-}
-
-.deployment-item span {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.deployment-item code {
-  font-size: 11px;
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 4px;
-  padding: 3px 6px;
-  color: var(--accent);
-}
-
-.deployment-item small {
-  font-size: 11px;
-  color: var(--muted);
-}
+.deployment-item strong { font-size: 13px; color: var(--text); }
+.deployment-item span   { font-size: 12px; color: var(--muted); }
+.deployment-item code   { font-size: 11px; background: var(--card); border: 0.5px solid var(--border); border-radius: 4px; padding: 3px 6px; color: var(--accent); }
+.deployment-item small  { font-size: 11px; color: var(--muted); }
 
 /* API */
-.api-section {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-}
-
+.api-section { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px; }
 .api-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px;
 }
-
-.api-section h3 i {
-  color: var(--accent);
-  font-size: 16px;
+.api-section h3 i { color: var(--accent); font-size: 16px; }
+.api-note {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+  background: var(--bg); border: 0.5px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;
 }
-
-.api-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.api-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-}
-
+.api-note i { font-size: 14px; color: var(--accent); flex-shrink: 0; }
+.api-list { display: flex; flex-direction: column; gap: 8px; }
+.api-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .method {
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 4px;
-  padding: 2px 6px;
-  min-width: 52px;
-  text-align: center;
-  flex-shrink: 0;
+  font-size: 10px; font-weight: 700; border-radius: 4px; padding: 2px 6px;
+  min-width: 52px; text-align: center; flex-shrink: 0;
 }
-
-.method.get {
-  background: rgba(34,197,94,0.15);
-  color: #16a34a;
-}
-
-.method.post {
-  background: rgba(59,130,246,0.15);
-  color: #2563eb;
-}
-
-.method.put {
-  background: rgba(234,179,8,0.15);
-  color: #ca8a04;
-}
-
-.method.delete {
-  background: rgba(239,68,68,0.15);
-  color: #dc2626;
-}
-
+.method.get    { background: rgba(34,197,94,0.15);  color: #16a34a; }
+.method.post   { background: rgba(59,130,246,0.15); color: #2563eb; }
+.method.put    { background: rgba(234,179,8,0.15);  color: #ca8a04; }
+.method.delete { background: rgba(239,68,68,0.15);  color: #dc2626; }
 .api-item code {
-  font-size: 12px;
-  background: var(--bg);
-  border: 0.5px solid var(--border);
-  border-radius: 4px;
-  padding: 2px 8px;
-  color: var(--accent);
-  min-width: 200px;
+  font-size: 12px; background: var(--bg); border: 0.5px solid var(--border);
+  border-radius: 4px; padding: 2px 8px; color: var(--accent); min-width: 200px;
 }
-
-.api-desc {
-  font-size: 12px;
-  color: var(--muted);
-}
+.api-desc { font-size: 12px; color: var(--muted); }
 
 /* Milestones */
-.milestones {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-}
-
+.milestones { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px; }
 .milestones h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px;
 }
-
-.milestones h3 i {
-  color: var(--accent);
-  font-size: 16px;
-}
-
-.milestone-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.milestone {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-}
-
-.milestone i {
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.milestone.done i {
-  color: var(--accent);
-}
-
-.milestone.pending i {
-  color: var(--muted);
-}
-
-.milestone div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.milestone strong {
-  color: var(--text);
-}
-
-.milestone.pending strong {
-  color: var(--muted);
-}
-
-.date {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--muted);
-  opacity: 0.7;
-}
+.milestones h3 i { color: var(--accent); font-size: 16px; }
+.milestone-list { display: flex; flex-direction: column; gap: 10px; }
+.milestone { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.milestone i { font-size: 18px; flex-shrink: 0; }
+.milestone.done i    { color: var(--accent); }
+.milestone.pending i { color: var(--muted); }
+.milestone div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.milestone strong         { color: var(--text); }
+.milestone.pending strong { color: var(--muted); }
+.date { margin-left: auto; font-size: 11px; color: var(--muted); opacity: 0.7; }
 
 /* Team */
-.team-section {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-}
-
+.team-section { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px; }
 .team-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px;
 }
-
-.team-section h3 i {
-  color: var(--accent);
-  font-size: 16px;
-}
-
-.team-list {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.team-member {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+.team-section h3 i { color: var(--accent); font-size: 16px; }
+.team-list   { display: flex; gap: 20px; flex-wrap: wrap; }
+.team-member { display: flex; align-items: center; gap: 12px; }
 .avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: 50%; background: var(--accent);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
 }
-
-.team-member p {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.team-member a {
-  font-size: 12px;
-  color: var(--accent);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.team-member a:hover {
-  text-decoration: underline;
-}
-
-/* Repo Links */
-.repo-links {
-  display: flex;
-  gap: 12px;
-}
-
-.repo-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.repo-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.repo-btn i {
-  font-size: 16px;
-}
+.team-member p { font-size: 13px; font-weight: 500; color: var(--text); }
+.team-member a { font-size: 12px; color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.team-member a:hover { text-decoration: underline; }
 </style>
