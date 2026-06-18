@@ -1,0 +1,41 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    name: Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Code auschecken
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Node.js einrichten
+      - name: Node.js 20 einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. Dependencies installieren
+      - name: Dependencies installieren
+        run: npm ci
+
+      # 4. Tests ausführen
+      - name: Vitest Tests ausführen
+        run: npm test
+
+      # 5. Production Build erstellen
+      - name: Production Build erstellen
+        run: npm run build
+        env:
+          VITE_AUTH0_DOMAIN: ${{ secrets.VITE_AUTH0_DOMAIN }}
+          VITE_AUTH0_CLIENT_ID: ${{ secrets.VITE_AUTH0_CLIENT_ID }}
+          VITE_AUTH0_AUDIENCE: ${{ secrets.VITE_AUTH0_AUDIENCE }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
