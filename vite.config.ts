@@ -5,11 +5,21 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      // Im Dev-Modus: Anfragen an /api werden ans Backend weitergeleitet
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       }
+    }
+  },
+  // ── Vitest Konfiguration ──────────────────────────────────
+  test: {
+    environment: 'jsdom',   // simuliert einen Browser (DOM API)
+    globals: true,           // describe/it/expect ohne Import
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{ts,vue}'],
+      exclude: ['src/main.ts']
     }
   }
 })

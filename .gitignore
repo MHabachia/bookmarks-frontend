@@ -10,8 +10,6 @@ dist-ssr/
 .env.local
 .env.*.local
 
-# Diese darf committed werden (nur Vorlage, keine echten Werte)
-# .env.example  ← bleibt drin
 
 # Logs
 *.log
