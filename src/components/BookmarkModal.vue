@@ -9,43 +9,27 @@
       </div>
 
       <div class="modal-body">
-
-        <!-- Feld 1: Titel -->
         <div class="field">
           <label>Titel</label>
           <input v-model="form.title" type="text" placeholder="z.B. Moodle HTW-berlin" />
         </div>
-
-        <!-- Feld 2: URL -->
         <div class="field">
           <label>URL</label>
           <input v-model="form.url" type="url" placeholder="https://..." />
         </div>
-
-        <!-- Feld 3: Beschreibung -->
         <div class="field">
           <label>Beschreibung</label>
           <input v-model="form.description" type="text" placeholder="Kurze Beschreibung (optional)" />
         </div>
-
-        <!-- Feld 4: Tags als Chips -->
         <div class="field">
           <label>Tags</label>
           <div class="tag-input-wrap" @click="focusTagInput">
-
-            <!-- bestehende Tags als Chips -->
-            <span
-              v-for="(tag, index) in form.tags"
-              :key="index"
-              class="tag-chip"
-            >
+            <span v-for="(tag, index) in form.tags" :key="index" class="tag-chip">
               {{ tag }}
               <button class="tag-remove" @click.stop="removeTag(index)">
                 <i class="ti ti-x"></i>
               </button>
             </span>
-
-            <!-- Eingabefeld für neuen Tag -->
             <input
               ref="tagInputRef"
               v-model="tagInput"
@@ -58,7 +42,6 @@
           </div>
           <span class="field-hint">Enter drücken um einen Tag hinzuzufügen</span>
         </div>
-
       </div>
 
       <div class="modal-footer">
@@ -68,12 +51,36 @@
           {{ isEdit ? 'Speichern' : 'Hinzufügen' }}
         </button>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
+/**
+ * @component BookmarkModal
+ * @description Modal-Dialog zum Hinzufügen und Bearbeiten von Bookmarks.
+ *
+ * Funktioniert in zwei Modi:
+ * - **Add-Modus** (`isEdit: false`): Leeres Formular, Button "Hinzufügen"
+ * - **Edit-Modus** (`isEdit: true`): Formular mit bestehenden Werten, Button "Speichern"
+ *
+ * Tag-Chip-Eingabe:
+ * - `Enter` oder `,` → fügt den eingegebenen Text als Tag-Chip hinzu
+ * - `Backspace` bei leerem Feld → entfernt den letzten Tag-Chip
+ * - `×` Button → entfernt einen bestimmten Tag-Chip
+ *
+ * Validierung:
+ * - Titel und URL sind Pflichtfelder (Save-Button deaktiviert wenn leer)
+ *
+ * @prop {Object|null} bookmark - Bestehendes Bookmark für Edit-Modus, null für Add-Modus
+ * @prop {boolean}     isEdit   - true = Edit-Modus, false = Add-Modus
+ *
+ * @emits close - Wenn der Dialog geschlossen werden soll
+ * @emits save  - Wenn gespeichert wird, mit dem Bookmark-Objekt als Payload
+ *
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 2.0
+ */
 
 import { reactive, ref, watch } from 'vue'
 
@@ -84,6 +91,10 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'save'])
 
+/**
+ * Reaktives Formular-Objekt.
+ * Wird beim Öffnen im Edit-Modus mit den Bookmark-Werten befüllt.
+ */
 const form = reactive({
   title:       '',
   url:         '',
@@ -91,15 +102,24 @@ const form = reactive({
   tags:        []
 })
 
+/** Aktueller Text im Tag-Eingabefeld (noch nicht als Chip hinzugefügt) */
 const tagInput = ref('')
 
+/** Template-Ref auf das Tag-Eingabefeld für programmatischen Fokus */
 const tagInputRef = ref(null)
 
+/**
+ * Setzt den Fokus auf das Tag-Eingabefeld.
+ * Wird aufgerufen wenn auf den Tag-Container geklickt wird.
+ */
 function focusTagInput() {
   tagInputRef.value?.focus()
 }
 
-
+/**
+ * Fügt den aktuellen Tag-Input-Text als neuen Tag-Chip hinzu.
+ * Entfernt Leerzeichen und abschließende Kommas. Verhindert Duplikate.
+ */
 function addTag() {
   const val = tagInput.value.trim().replace(/,$/, '')
   if (val && !form.tags.includes(val)) {
@@ -108,19 +128,27 @@ function addTag() {
   tagInput.value = ''
 }
 
-
+/**
+ * Entfernt einen Tag-Chip anhand seines Index.
+ * @param {number} index - Index des zu entfernenden Tags in form.tags
+ */
 function removeTag(index) {
   form.tags.splice(index, 1)
 }
 
-
+/**
+ * Entfernt den letzten Tag-Chip wenn Backspace bei leerem Eingabefeld gedrückt wird.
+ */
 function removeLastTag() {
   if (tagInput.value === '' && form.tags.length > 0) {
     form.tags.pop()
   }
 }
 
-
+/**
+ * Beobachtet Änderungen am `bookmark` Prop und befüllt das Formular im Edit-Modus.
+ * `immediate: true` → wird auch beim ersten Render ausgeführt.
+ */
 watch(() => props.bookmark, (b) => {
   if (b) {
     form.title       = b.title ?? ''
@@ -130,10 +158,12 @@ watch(() => props.bookmark, (b) => {
   }
 }, { immediate: true })
 
-
+/**
+ * Validiert und sendet das Formular.
+ * Abbruch wenn Titel oder URL leer. Noch nicht bestätigter Tag-Input wird als Tag hinzugefügt.
+ */
 function save() {
   if (!form.title || !form.url) return
-  // Falls noch Text im Tag-Feld steht der nicht per Enter bestätigt wurde
   if (tagInput.value.trim()) addTag()
   emit('save', {
     ...(props.bookmark ?? {}),
@@ -146,136 +176,32 @@ function save() {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-.modal {
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 16px;
-  width: 460px;
-  max-width: 90vw;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px;
-  border-bottom: 0.5px solid var(--border);
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; }
+.modal { background: var(--card); border: 0.5px solid var(--border); border-radius: 16px; width: 460px; max-width: 90vw; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 0.5px solid var(--border); }
 .modal-header h2 { font-size: 16px; font-weight: 700; color: var(--text); }
-.modal-close {
-  background: none; border: none; color: var(--muted);
-  padding: 4px; border-radius: 6px; display: flex; align-items: center; cursor: pointer;
-}
+.modal-close { background: none; border: none; color: var(--muted); padding: 4px; border-radius: 6px; display: flex; align-items: center; cursor: pointer; }
 .modal-close i { font-size: 18px; }
 .modal-close:hover { background: var(--hover); color: var(--text); }
-
 .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-
 .field { display: flex; flex-direction: column; gap: 5px; }
-.field label {
-  font-size: 12px; font-weight: 600; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.5px;
-}
-.field-hint {
-  font-size: 11px;
-  color: var(--muted);
-  opacity: 0.7;
-}
-.field input {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 9px 12px; font-size: 14px;
-  color: var(--text); outline: none; transition: border-color 0.15s; font-family: inherit;
-}
-.field input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(26, 109, 191, 0.12);
-}
+.field label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.field-hint { font-size: 11px; color: var(--muted); opacity: 0.7; }
+.field input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s; font-family: inherit; }
+.field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,109,191,0.12); }
 .field input::placeholder { color: var(--muted); opacity: 0.6; }
-
-/* Tag-Chip Eingabefeld */
-.tag-input-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 7px 10px;
-  cursor: text;
-  min-height: 42px;
-  transition: border-color 0.15s;
-}
-.tag-input-wrap:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(26, 109, 191, 0.12);
-}
-
-/* Einzelner Tag-Chip */
-.tag-chip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--tag-bg);
-  color: var(--accent);
-  border-radius: 99px;
-  padding: 3px 8px 3px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.tag-remove {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  color: var(--accent);
-  opacity: 0.7;
-  border-radius: 50%;
-}
+.tag-input-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; cursor: text; min-height: 42px; transition: border-color 0.15s; }
+.tag-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,109,191,0.12); }
+.tag-chip { display: flex; align-items: center; gap: 4px; background: var(--tag-bg); color: var(--accent); border-radius: 99px; padding: 3px 8px 3px 10px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.tag-remove { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; color: var(--accent); opacity: 0.7; border-radius: 50%; }
 .tag-remove:hover { opacity: 1; }
 .tag-remove i { font-size: 11px; }
-
-/* Unsichtbares Eingabefeld innerhalb des Chip-Containers */
-.tag-input {
-  border: none !important;
-  background: transparent !important;
-  outline: none !important;
-  box-shadow: none !important;
-  padding: 2px 4px !important;
-  font-size: 13px;
-  color: var(--text);
-  flex: 1;
-  min-width: 120px;
-}
+.tag-input { border: none !important; background: transparent !important; outline: none !important; box-shadow: none !important; padding: 2px 4px !important; font-size: 13px; color: var(--text); flex: 1; min-width: 120px; }
 .tag-input::placeholder { color: var(--muted); opacity: 0.5; }
-
-.modal-footer {
-  display: flex; justify-content: flex-end; gap: 10px;
-  padding: 16px 20px; border-top: 0.5px solid var(--border);
-}
-.btn-cancel {
-  background: none; border: 0.5px solid var(--border);
-  border-radius: 8px; padding: 8px 16px; font-size: 13px; color: var(--muted); cursor: pointer;
-}
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 0.5px solid var(--border); }
+.btn-cancel { background: none; border: 0.5px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; color: var(--muted); cursor: pointer; }
 .btn-cancel:hover { background: var(--hover); }
-.btn-save {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--btn); color: var(--btn-text); border: none;
-  border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
-}
+.btn-save { display: flex; align-items: center; gap: 6px; background: var(--btn); color: var(--btn-text); border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-save:not(:disabled):hover { opacity: 0.9; }
 .btn-save i { font-size: 14px; }

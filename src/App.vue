@@ -1,5 +1,5 @@
 <template>
-  <!-- Ladescreen während Auth0 den Status prüft -->
+  <!-- Ladescreen während Auth0 den Login-Status prüft -->
   <div v-if="isLoading" class="auth-loading">
     <i class="ti ti-bookmark"></i>
     <p>BookmarkIt wird geladen…</p>
@@ -43,6 +43,26 @@
 </template>
 
 <script setup>
+/**
+ * @component App
+ * @description Wurzelkomponente der BookmarkIt-Anwendung.
+ *
+ * Verantwortlichkeiten:
+ * - Auth0 Login-Gate: zeigt Ladescreen → Login-Card → App je nach Auth-Status
+ * - Globaler Zustand via Vue `provide()` für alle Kind-Komponenten
+ * - Dark/Light Mode Toggle mit CSS-Klasse auf `document.body`
+ * - Zentrales Toast-Benachrichtigungssystem mit Auto-Dismiss nach 3 Sekunden
+ *
+ * Globaler Zustand (via provide/inject):
+ * - `bookmarks`    → zentrale Bookmark-Liste (Ref<Array>)
+ * - `activeFilter` → aktiver Sidebar-Filter (Ref<string>)
+ * - `isDark`       → Dark-Mode-Status (Ref<boolean>)
+ * - `showToast`    → Funktion zum Anzeigen von Toast-Meldungen
+ *
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 2.0
+ */
+
 import { ref, provide, reactive } from 'vue'
 import { RouterView } from 'vue-router'
 import { useAuth } from './composables/useAuth'
@@ -52,17 +72,47 @@ import ToastNotification from './components/ToastNotification.vue'
 
 const { isLoading, isAuthenticated, login } = useAuth()
 
-// ── Dark Mode ──────────────────────────────────────────────
+// ── Dark Mode ──────────────────────────────────────────────────────────────
+
+/** Reaktiver Dark-Mode-Status. Wird an AppTopbar übergeben und global bereitgestellt. */
 const isDark = ref(false)
+
+/**
+ * Schaltet zwischen Dark und Light Mode um.
+ * Setzt/entfernt die CSS-Klasse `dark` auf `document.body`,
+ * die in main.css alle CSS-Variablen überschreibt.
+ */
 function toggleDark() {
   isDark.value = !isDark.value
   document.body.classList.toggle('dark', isDark.value)
 }
+
 provide('isDark', isDark)
 
-// ── Toast ──────────────────────────────────────────────────
+// ── Toast-Benachrichtigungen ───────────────────────────────────────────────
+
+/**
+ * Reaktiver Toast-Zustand.
+ * @property message - Anzuzeigende Nachricht
+ * @property type    - Toast-Typ: 'success' | 'error' | 'info'
+ * @property visible - Sichtbarkeit des Toasts
+ */
 const toast = reactive({ message: '', type: 'success', visible: false })
+
+/** Timer-Handle für das automatische Ausblenden des Toasts */
 let toastTimer = null
+
+/**
+ * Zeigt eine Toast-Benachrichtigung für 3 Sekunden an.
+ * Laufende Toasts werden sofort ersetzt (Timer zurückgesetzt).
+ *
+ * @param {string} message - Anzuzeigende Nachricht
+ * @param {string} [type='success'] - Toast-Typ: 'success', 'error' oder 'info'
+ *
+ * @example
+ * showToast('Bookmark wurde gespeichert ✅')
+ * showToast('Fehler beim Laden', 'error')
+ */
 function showToast(message, type = 'success') {
   if (toastTimer) clearTimeout(toastTimer)
   toast.message = message
@@ -70,19 +120,31 @@ function showToast(message, type = 'success') {
   toast.visible = true
   toastTimer = setTimeout(() => { toast.visible = false }, 3000)
 }
+
 provide('showToast', showToast)
 
-// ── Bookmarks ──────────────────────────────────────────────
+// ── Globale Bookmark-Liste ─────────────────────────────────────────────────
+
+/**
+ * Zentrale Bookmark-Liste für die gesamte Anwendung.
+ * Wird von BookmarkList.vue beim Mount via API geladen und danach
+ * bei jeder CRUD-Operation aktuell gehalten (kein komplettes Neuladen).
+ */
 const bookmarks = ref([])
 provide('bookmarks', bookmarks)
 
-// ── Aktiver Filter ─────────────────────────────────────────
+// ── Aktiver Filter ─────────────────────────────────────────────────────────
+
+/**
+ * Aktiver Sidebar-Filter.
+ * Mögliche Werte: 'alle' | 'ungelesen' | 'favoriten' | 'gelesen' | 'tags'
+ * Standard: 'alle'
+ */
 const activeFilter = ref('alle')
 provide('activeFilter', activeFilter)
 </script>
 
 <style scoped>
-/* ── Login / Loading Gate ── */
 .auth-loading {
   min-height: 100vh;
   display: flex;
@@ -140,7 +202,6 @@ provide('activeFilter', activeFilter)
 }
 .auth-logo i    { font-size: 28px; color: var(--accent); }
 .auth-logo span { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-
 .auth-card h1 { font-size: 18px; font-weight: 700; color: var(--text); }
 .auth-card p  { font-size: 14px; color: var(--muted); line-height: 1.6; }
 
@@ -171,7 +232,6 @@ provide('activeFilter', activeFilter)
   margin-top: 4px;
 }
 
-/* ── App Layout ── */
 #app-layout {
   display: flex;
   height: 100vh;

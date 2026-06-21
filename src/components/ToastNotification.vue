@@ -8,6 +8,27 @@
 </template>
 
 <script setup>
+/**
+ * @component ToastNotification
+ * @description Globale Toast-Benachrichtigung für Benutzer-Feedback.
+ *
+ * Wird von App.vue via provide('showToast') gesteuert und erscheint
+ * für 3 Sekunden am unteren rechten Bildschirmrand.
+ *
+ * Unterstützte Typen:
+ * - `success` (Standard) → Blau, Häkchen-Icon
+ * - `error`              → Rot, Warndreick-Icon
+ * - `info`               → Dunkel, Info-Icon
+ *
+ * Animation via Vue Transition: von unten einblenden, nach unten ausblenden.
+ *
+ * @prop {string}  message - Anzuzeigende Nachricht
+ * @prop {string}  type    - Toast-Typ: 'success' | 'error' | 'info'
+ * @prop {boolean} visible - Sichtbarkeit des Toasts, gesteuert von App.vue
+ *
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 2.0
+ */
 
 import { computed } from 'vue'
 
@@ -17,7 +38,12 @@ const props = defineProps({
   visible: { type: Boolean, default: false }
 })
 
-/** Icon je nach Toast-Typ. */
+/**
+ * Berechnet das passende Tabler-Icon je nach Toast-Typ.
+ * Standardmäßig wird das Erfolgs-Häkchen-Icon verwendet.
+ *
+ * @returns {string} CSS-Klassenstring für das Tabler Icon
+ */
 const icon = computed(() => ({
   error: 'ti ti-alert-circle',
   info:  'ti ti-info-circle'

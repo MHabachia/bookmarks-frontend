@@ -17,7 +17,6 @@
         </div>
 
         <div class="card-actions">
-          <!-- Favorit-Button -->
           <button
             class="action-btn"
             :class="{ active: isFavorit }"
@@ -27,7 +26,6 @@
             <i :class="isFavorit ? 'ti ti-star-filled' : 'ti ti-star'"></i>
           </button>
 
-          <!-- Gelesen-Button -->
           <button
             class="action-btn"
             :class="{ active: isGelesen }"
@@ -37,7 +35,6 @@
             <i :class="isGelesen ? 'ti ti-circle-check-filled' : 'ti ti-circle-check'"></i>
           </button>
 
-          <!-- Dreipunkt-Menü -->
           <div class="menu-wrap" ref="menuWrap">
             <button class="action-btn" @click="toggleMenu">
               <i class="ti ti-dots-vertical"></i>
@@ -71,51 +68,112 @@
 </template>
 
 <script setup>
+/**
+ * @component BookmarkItem
+ * @description Einzelne Bookmark-Karte in der Listenansicht.
+ *
+ * Zeigt alle Informationen eines Bookmarks an und ermöglicht:
+ * - Favorit- und Gelesen-Status toggling (direkte Buttons)
+ * - Bearbeiten und Löschen (Dreipunkt-Menü)
+ * - Öffnen der URL in einem neuen Tab
+ *
+ * Favicon wird via Google S2 API geladen. Bei Ladefehler wird ein Fallback-Icon angezeigt.
+ * Das Dreipunkt-Menü schließt sich automatisch bei Klick außerhalb der Komponente.
+ *
+ * @prop {Object} bookmark - Das Bookmark-Objekt mit id, title, url, description, tags, favorit, gelesen
+ *
+ * @emits edit           - Wenn "Bearbeiten" geklickt wird, mit dem Bookmark-Objekt
+ * @emits delete         - Wenn "Löschen" geklickt wird, mit dem Bookmark-Objekt
+ * @emits toggle-favorit - Wenn der Favorit-Button geklickt wird, mit dem aktualisierten Bookmark
+ * @emits toggle-gelesen - Wenn der Gelesen-Button geklickt wird, mit dem aktualisierten Bookmark
+ *
+ * @author Mohamad Habachia, Ibrahim Hassan
+ * @version 2.0
+ */
 
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({ bookmark: { type: Object, required: true } })
 const emit  = defineEmits(['edit', 'delete', 'toggle-favorit', 'toggle-gelesen'])
 
-
+/** Berechneter Favorit-Status aus dem Bookmark-Prop */
 const isFavorit = computed(() => props.bookmark.favorit ?? false)
+
+/** Berechneter Gelesen-Status aus dem Bookmark-Prop */
 const isGelesen = computed(() => props.bookmark.gelesen ?? false)
 
+/** Template-Ref auf das Favicon-Bild für Fehlerbehandlung */
 const faviconImg      = ref(null)
+
+/** Template-Ref auf das Fallback-Icon wenn Favicon nicht lädt */
 const faviconFallback = ref(null)
-const menuWrap        = ref(null)
-const menuOpen        = ref(false)
 
+/** Template-Ref auf den Menü-Wrapper für Outside-Click-Erkennung */
+const menuWrap  = ref(null)
 
+/** Gibt an ob das Dreipunkt-Menü geöffnet ist */
+const menuOpen  = ref(false)
+
+/**
+ * Extrahierter Domain-Name aus der Bookmark-URL ohne www.
+ * @example "https://www.htw-berlin.de/studium" → "htw-berlin.de"
+ */
 const domain = computed(() => {
   try { return new URL(props.bookmark.url).hostname.replace('www.', '') }
   catch { return props.bookmark.url }
 })
 
+/**
+ * Wird aufgerufen wenn das Favicon nicht geladen werden kann.
+ * Versteckt das Bild und zeigt das Fallback-Icon an.
+ */
 function onFaviconError() {
   if (faviconImg.value)      faviconImg.value.style.display = 'none'
   if (faviconFallback.value) faviconFallback.value.style.display = 'flex'
 }
 
+/** Öffnet/schließt das Dreipunkt-Menü */
 function toggleMenu() { menuOpen.value = !menuOpen.value }
-function onEdit()     { menuOpen.value = false; emit('edit', props.bookmark) }
-function onDelete()   { menuOpen.value = false; emit('delete', props.bookmark) }
 
+/**
+ * Schließt das Menü und emittiert das `edit` Event.
+ * BookmarkList.vue öffnet daraufhin das BookmarkModal im Edit-Modus.
+ */
+function onEdit() {
+  menuOpen.value = false
+  emit('edit', props.bookmark)
+}
+
+/**
+ * Schließt das Menü und emittiert das `delete` Event.
+ * BookmarkList.vue zeigt daraufhin den Bestätigungs-Dialog an.
+ */
+function onDelete() {
+  menuOpen.value = false
+  emit('delete', props.bookmark)
+}
+
+/**
+ * Toggled den Favorit-Status und emittiert das `toggle-favorit` Event
+ * mit dem vollständigen aktualisierten Bookmark-Objekt.
+ */
 function toggleFavorit() {
-  const newVal = !isFavorit.value
   emit('toggle-favorit', {
     id:          props.bookmark.id,
     title:       props.bookmark.title,
     url:         props.bookmark.url,
     description: props.bookmark.description,
     tags:        props.bookmark.tags ?? [],
-    favorit:     newVal,
+    favorit:     !isFavorit.value,
     gelesen:     isGelesen.value
   })
 }
 
+/**
+ * Toggled den Gelesen-Status und emittiert das `toggle-gelesen` Event
+ * mit dem vollständigen aktualisierten Bookmark-Objekt.
+ */
 function toggleGelesen() {
-  const newVal = !isGelesen.value
   emit('toggle-gelesen', {
     id:          props.bookmark.id,
     title:       props.bookmark.title,
@@ -123,13 +181,18 @@ function toggleGelesen() {
     description: props.bookmark.description,
     tags:        props.bookmark.tags ?? [],
     favorit:     isFavorit.value,
-    gelesen:     newVal
+    gelesen:     !isGelesen.value
   })
 }
 
+/**
+ * Schließt das Dreipunkt-Menü bei Klick außerhalb der Komponente.
+ * @param {MouseEvent} e - Das click-Event vom document
+ */
 function handleOutside(e) {
   if (menuWrap.value && !menuWrap.value.contains(e.target)) menuOpen.value = false
 }
+
 onMounted(()   => document.addEventListener('click', handleOutside))
 onUnmounted(() => document.removeEventListener('click', handleOutside))
 </script>
@@ -146,72 +209,31 @@ onUnmounted(() => document.removeEventListener('click', handleOutside))
 }
 .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .card-body { padding: 13px 15px; }
-.card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 7px;
-}
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 7px; }
 .card-title-row { display: flex; align-items: center; gap: 8px; }
 .favicon { width: 18px; height: 18px; border-radius: 3px; object-fit: contain; flex-shrink: 0; }
-.favicon-fallback {
-  width: 18px; height: 18px; border-radius: 3px;
-  background: var(--tag-bg); align-items: center; justify-content: center; flex-shrink: 0;
-}
+.favicon-fallback { width: 18px; height: 18px; border-radius: 3px; background: var(--tag-bg); align-items: center; justify-content: center; flex-shrink: 0; }
 .favicon-fallback i { font-size: 11px; color: var(--muted); }
 .card-title { font-size: 13px; font-weight: 500; color: var(--text); }
 .card-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .menu-wrap { position: relative; }
-.action-btn {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  color: #888888;
-  transition: background 0.15s, color 0.15s;
-}
+.action-btn { background: none; border: none; padding: 4px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; color: #888888; transition: background 0.15s, color 0.15s; }
 .action-btn:hover { background: var(--hover); color: var(--text); }
 .action-btn i { font-size: 18px; color: #888888; }
 .action-btn.active { background: var(--tag-bg); }
 .action-btn.active i { color: var(--accent); font-size: 18px; }
-.card-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  width: 150px;
-  background: var(--dropdown);
-  border: 0.5px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  display: none;
-  z-index: 50;
-}
+.card-dropdown { position: absolute; top: calc(100% + 4px); right: 0; width: 150px; background: var(--dropdown); border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.12); display: none; z-index: 50; }
 .card-dropdown.open { display: block; }
-.card-dropdown-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 9px 12px; font-size: 13px; color: var(--text);
-  background: none; border: none; width: 100%;
-  text-align: left; cursor: pointer; font-family: inherit;
-}
+.card-dropdown-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; font-size: 13px; color: var(--text); background: none; border: none; width: 100%; text-align: left; cursor: pointer; font-family: inherit; }
 .card-dropdown-item:hover { background: var(--hover); }
 .card-dropdown-item i { font-size: 14px; color: var(--muted); }
 .card-dropdown-item.danger { color: #E24B4A; }
 .card-dropdown-item.danger i { color: #E24B4A; }
 .card-dropdown-item.danger:hover { background: rgba(226,75,74,0.08); }
-.card-url {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 11px; color: var(--accent); margin-bottom: 7px; text-decoration: none;
-}
+.card-url { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--accent); margin-bottom: 7px; text-decoration: none; }
 .card-url i { font-size: 11px; }
 .card-url:hover { text-decoration: underline; }
 .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-.tag {
-  font-size: 11px; background: var(--tag-bg); color: var(--accent);
-  border-radius: 99px; padding: 2px 9px; font-weight: 500;
-}
+.tag { font-size: 11px; background: var(--tag-bg); color: var(--accent); border-radius: 99px; padding: 2px 9px; font-weight: 500; }
 </style>
