@@ -159,8 +159,8 @@ async function confirmDelete() {
 async function toggleBookmark(updated) {
   try {
     const original = bookmarks.value.find(b => b.id === updated.id)
-    const favoritGeandert = original?.favorit !== updated.favorit
-    const gelesenGeandert = original?.gelesen  !== updated.gelesen
+    const favoritGeandert = original !== undefined && original.favorit !== updated.favorit
+    const gelesenGeandert = original !== undefined && original.gelesen  !== updated.gelesen
 
     const response = await authFetch(`${API_URL}/api/bookmarks/${updated.id}`, {
       method: 'PUT',
