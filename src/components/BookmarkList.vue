@@ -88,7 +88,6 @@ import BookmarkItem from './BookmarkItem.vue'
 import BookmarkModal from './BookmarkModal.vue'
 import { useAuth } from '../composables/useAuth'
 
-// authFetch statt fetch — setzt automatisch JWT-Bearer-Token
 const { authFetch } = useAuth()
 const API_URL = import.meta.env.VITE_API_URL || ''
 
@@ -103,7 +102,7 @@ const modalOpen  = ref(false)
 const deleteConfirm  = reactive({ open: false, bookmark: null })
 const editingBookmark = ref(null)
 
-function openAdd()  { editingBookmark.value = null; modalOpen.value = true }
+function openAdd()   { editingBookmark.value = null; modalOpen.value = true }
 function openEdit(b) { editingBookmark.value = b;   modalOpen.value = true }
 function closeModal() { modalOpen.value = false; editingBookmark.value = null }
 
@@ -237,15 +236,18 @@ onMounted(async () => {
   display: flex; align-items: center; gap: 6px;
   background: var(--btn); color: var(--btn-text);
   border: none; border-radius: 8px; padding: 7px 13px;
-  font-size: 13px; font-weight: 600;
+  font-size: 13px; font-weight: 600; cursor: pointer;
 }
 .add-btn i { font-size: 14px; }
 .add-btn:hover { opacity: 0.9; }
+
+/* Fix: responsive Grid statt fixer 5-Spalten */
 .bookmark-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
 }
+
 .confirm-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.45);

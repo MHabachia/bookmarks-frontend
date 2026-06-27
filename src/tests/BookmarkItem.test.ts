@@ -30,9 +30,8 @@ describe('BookmarkItem.vue', () => {
     const wrapper = mount(BookmarkItem, {
       props: { bookmark: mockBookmark }
     })
-    // Ersten action-btn klicken (Favorit)
-    const buttons = wrapper.findAll('.action-btn')
-    await buttons[0].trigger('click')
+    // Fix: semantischer Selektor via title-Attribut statt fragiler Index
+    await wrapper.find('[title*="Favorit"]').trigger('click')
     expect(wrapper.emitted('toggle-favorit')).toBeTruthy()
   })
 
@@ -40,9 +39,8 @@ describe('BookmarkItem.vue', () => {
     const wrapper = mount(BookmarkItem, {
       props: { bookmark: mockBookmark }
     })
-    // Zweiten action-btn klicken (Gelesen)
-    const buttons = wrapper.findAll('.action-btn')
-    await buttons[1].trigger('click')
+    // Fix: semantischer Selektor via title-Attribut statt fragiler Index
+    await wrapper.find('[title*="gelesen"]').trigger('click')
     expect(wrapper.emitted('toggle-gelesen')).toBeTruthy()
   })
 
@@ -50,8 +48,8 @@ describe('BookmarkItem.vue', () => {
     const wrapper = mount(BookmarkItem, {
       props: { bookmark: { ...mockBookmark, favorit: true } }
     })
-    const buttons = wrapper.findAll('.action-btn')
-    expect(buttons[0].classes()).toContain('active')
+    // Fix: semantischer Selektor via title-Attribut
+    expect(wrapper.find('[title*="Favoriten"]').classes()).toContain('active')
   })
 
 })
