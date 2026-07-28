@@ -21,10 +21,10 @@
 
     <div class="sidebar-footer">
       <div class="repos-row">
-        <a href="https://github.com/MHabachia/bookmarks-frontend" target="_blank" class="repo-btn">
+        <a href="https://github.com/MHabachia/bookmarkit-frontend" target="_blank" class="repo-btn">
           <i class="ti ti-brand-github"></i>Frontend
         </a>
-        <a href="https://github.com/MHabachia/bookmarks-backend" target="_blank" class="repo-btn">
+        <a href="https://github.com/MHabachia/bookmarkit-backend" target="_blank" class="repo-btn">
           <i class="ti ti-brand-github"></i>Backend
         </a>
       </div>
