@@ -144,13 +144,13 @@ Spring Boot Backend validiert Token und gibt Daten zurück
 - Node.js 20+
 - npm
 - Auth0-Account (kostenlos)
-- Laufendes Backend (`bookmarks-backend`)
+- Laufendes Backend (`bookmarkit-backend`)
 
 ### Setup
 
 ```bash
-git clone https://github.com/MHabachia/bookmarks-frontend.git
-cd bookmarks-frontend
+git clone https://github.com/MHabachia/bookmarkit-frontend.git
+cd bookmarkit-frontend
 npm install
 cp .env.example .env
 # Werte aus dem Auth0 Dashboard in .env eintragen
@@ -221,5 +221,5 @@ npm run dev
 | Mohamad Habachia | [@MHabachia](https://github.com/MHabachia) |
 | Ibrahim Hassan | [@Hassan9977](https://github.com/Hassan9977) |
 
-- **Frontend:** https://github.com/MHabachia/bookmarks-frontend
-- **Backend:** https://github.com/MHabachia/bookmarks-backend
+- **Frontend:** https://github.com/MHabachia/bookmarkit-frontend
+- **Backend:** https://github.com/MHabachia/bookmarkit-backend
